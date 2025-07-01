@@ -4,6 +4,7 @@ define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'expense_management');
+define('DB_PORT', 3308);
 
 // Application configuration
 define('APP_NAME', 'Expense Management System');
@@ -22,4 +23,3 @@ ini_set('display_errors', 1);
 
 // Timezone
 date_default_timezone_set('UTC');
-?>
