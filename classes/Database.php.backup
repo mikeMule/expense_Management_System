@@ -8,8 +8,7 @@ class Database {
     private $error;
 
     public function __construct() {
-        $port = defined('DB_PORT') ? DB_PORT : 3306;
-        $dsn = 'mysql:host=' . $this->host . ';port=' . $port . ';dbname=' . $this->dbname . ';charset=utf8mb4';
+        $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname . ';charset=utf8mb4';
         $options = array(
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
