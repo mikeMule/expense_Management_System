@@ -79,7 +79,7 @@ $page_title = 'Login';
                         <label for="password" class="form-label">
                             <i class="fas fa-lock me-1"></i>Password
                         </label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required>
                         <div class="invalid-feedback">
                             Please enter your password.
                         </div>
