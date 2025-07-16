@@ -20,6 +20,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom CSS -->
     <link href="assets/css/style.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 </head>
 
 <body>
