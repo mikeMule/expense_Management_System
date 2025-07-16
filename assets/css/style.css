@@ -11,13 +11,13 @@
 }
 
 body {
-  background-color: #f8f9fa;
+  background: linear-gradient(135deg, #f5f6fa 0%, #e9e6f7 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding-top: 76px; /* Account for fixed navbar */
 }
 
-body:not(.dashboard-page) {
-  background: none !important;
+body:not(.dashboard-page):not(.login-page) {
+  background: linear-gradient(135deg, #f5f6fa 0%, #e9e6f7 100%) !important;
   position: relative;
   overflow-x: hidden;
 }
@@ -42,8 +42,13 @@ body:not(.dashboard-page)::after {
   right: 0;
   bottom: 0;
   z-index: 1;
-  background: #000;
-  opacity: 0.28;
+  /* Remove or lighten the overlay for a cleaner look */
+  background: linear-gradient(
+    135deg,
+    rgba(118, 75, 162, 0.04) 0%,
+    rgba(33, 37, 41, 0.06) 100%
+  );
+  opacity: 0.12;
   pointer-events: none;
 }
 .page-animate,
@@ -425,4 +430,103 @@ body.loading {
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+/* Modern CSS3/HTML5 Modal Overlay and Content */
+.modal2025-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(118, 75, 162, 0.32);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s;
+  opacity: 1;
+}
+.modal2025-overlay.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+.modal2025-content {
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28); /* Black shadow, more visible */
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 730px;
+  width: 131%;
+  position: relative;
+  animation: modalPopIn2025 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+.modal2025-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e3e6f0;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(90deg, #fff, #f8f9fa 80%);
+  border-radius: 1.25rem 1.25rem 0 0;
+}
+.modal2025-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #764ba2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.modal2025-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid #e3e6f0;
+  padding-top: 1rem;
+  margin-top: 2rem;
+  background: linear-gradient(
+    90deg,
+    #1976d2 0%,
+    #42a5f5 100%
+  ); /* Blue gradient like header/nav */
+  border-radius: 0 0 1.25rem 1.25rem;
+  font-weight: 500;
+  color: #fff;
+  align-items: center;
+}
+.modal2025-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.modal2025-close:hover {
+  color: #764ba2;
+}
+@keyframes modalPopIn2025 {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.footer-react {
+  background: linear-gradient(118deg, #0d6efd 0%, #414345 100%);
+  color: #fff;
+  font-size: 1.08rem;
+  letter-spacing: 0.01em;
+  border-top: 2px solid #1976d2;
+  box-shadow: 0 -2px 16px rgba(25, 118, 210, 0.08);
 }
