@@ -193,6 +193,17 @@ $page_title = 'Add Salary Information';
         })();
     </script>
     <?php include 'includes/footer.php'; ?>
+    <script>
+        // Fallback: Ensure Bootstrap dropdowns are initialized if JS loads after DOM
+        if (window.bootstrap) {
+            document.querySelectorAll('.dropdown-toggle').forEach(function(dropdownToggleEl) {
+                if (!dropdownToggleEl.hasAttribute('data-bs-toggle-initialized')) {
+                    new bootstrap.Dropdown(dropdownToggleEl);
+                    dropdownToggleEl.setAttribute('data-bs-toggle-initialized', 'true');
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

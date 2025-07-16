@@ -22,6 +22,54 @@ $error = $_SESSION['error'] ?? '';
 $submitted_salary = $_SESSION['submitted_salary'] ?? null;
 unset($_SESSION['success'], $_SESSION['error'], $_SESSION['submitted_salary']);
 
+// Handle add salary modal POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_salary'])) {
+    $employee_id_str = trim($_POST['employee_id'] ?? '');
+    $amount = floatval($_POST['amount'] ?? 0);
+    $month = intval($_POST['month'] ?? 0);
+    $year = intval($_POST['year'] ?? 0);
+    $notes = trim($_POST['notes'] ?? '');
+
+    // Find the numeric id for the given employee_id string
+    $all_employees = $employee->getAllEmployees();
+    $numeric_employee_id = null;
+    foreach ($all_employees as $emp) {
+        if ($emp['employee_id'] === $employee_id_str) {
+            $numeric_employee_id = $emp['id'];
+            break;
+        }
+    }
+
+    // Robust validation
+    if (!$numeric_employee_id) {
+        $salary_error = 'Please select a valid employee.';
+    } elseif ($amount <= 0) {
+        $salary_error = 'Please enter a valid amount.';
+    } elseif ($month < 1 || $month > 12) {
+        $salary_error = 'Please select a valid month.';
+    } elseif ($year < 2020 || $year > date('Y')) {
+        $salary_error = 'Please select a valid year.';
+    } else {
+        $result = $employee->addSalaryPayment($numeric_employee_id, $month, $year, $amount, $notes);
+        if ($result) {
+            $_SESSION['success'] = 'Salary record added successfully.';
+            $_SESSION['submitted_salary'] = [
+                'employee' => array_values(array_filter($all_employees, function ($emp) use ($numeric_employee_id) {
+                    return $emp['id'] == $numeric_employee_id;
+                }))[0] ?? null,
+                'amount' => $amount,
+                'month' => $month,
+                'year' => $year,
+                'notes' => $notes
+            ];
+            header('Location: salaries.php');
+            exit();
+        } else {
+            $salary_error = 'Failed to add salary record. It may already exist for this period.';
+        }
+    }
+}
+
 // Handle generate monthly salaries
 if ($_POST && isset($_POST['generate_salaries'])) {
     $month = intval($_POST['month']);
@@ -41,9 +89,9 @@ if ($_POST && isset($_POST['generate_salaries'])) {
     }
 }
 
-// Get filter parameters
-$filter_month = $_GET['month'] ?? date('n');
-$filter_year = $_GET['year'] ?? date('Y');
+// Get filter parameters (allow 'all' for month/year)
+$filter_month = isset($_GET['month']) && $_GET['month'] !== 'all' ? $_GET['month'] : null;
+$filter_year = isset($_GET['year']) && $_GET['year'] !== 'all' ? $_GET['year'] : null;
 
 // Get salary payments
 $salary_payments = $employee->getSalaryPayments($filter_month, $filter_year);
@@ -106,6 +154,7 @@ include 'includes/navbar.php';
                                 <div class="col-md-3">
                                     <label for="month" class="form-label">Month</label>
                                     <select class="form-select" id="month" name="month">
+                                        <option value="all" <?php echo is_null($filter_month) ? 'selected' : ''; ?>>All</option>
                                         <?php for ($m = 1; $m <= 12; $m++): ?>
                                             <option value="<?php echo $m; ?>" <?php echo $filter_month == $m ? 'selected' : ''; ?>><?php echo date('F', mktime(0, 0, 0, $m, 1)); ?></option>
                                         <?php endfor; ?>
@@ -114,6 +163,7 @@ include 'includes/navbar.php';
                                 <div class="col-md-3">
                                     <label for="year" class="form-label">Year</label>
                                     <select class="form-select" id="year" name="year">
+                                        <option value="all" <?php echo is_null($filter_year) ? 'selected' : ''; ?>>All</option>
                                         <?php for ($y = date('Y'); $y >= 2020; $y--): ?>
                                             <option value="<?php echo $y; ?>" <?php echo $filter_year == $y ? 'selected' : ''; ?>><?php echo $y; ?></option>
                                         <?php endfor; ?>
@@ -121,7 +171,7 @@ include 'includes/navbar.php';
                                 </div>
                                 <div class="col-md-4">
                                     <label for="search" class="form-label">Search</label>
-                                    <input type="text" class="form-control" id="search" name="search" placeholder="Search..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+                                    <input type="text" class="form-control" id="salarySearchInput" name="search" placeholder="Search..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
                                 </div>
                                 <div class="col-12">
                                     <button type="submit" class="btn btn-primary">
@@ -270,8 +320,9 @@ include 'includes/navbar.php';
                                     </button>
                                 </div>
                             <?php else: ?>
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
+                                <div class="table-responsive mt-3">
+                                    <input type="text" id="salaryTableSearch" class="form-control mb-2" placeholder="Quick search in table...">
+                                    <table class="table table-hover table-striped align-middle" id="salaryTable">
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Employee</th>
@@ -279,6 +330,7 @@ include 'includes/navbar.php';
                                                 <th>Year</th>
                                                 <th class="text-end">Amount</th>
                                                 <th>Notes</th>
+                                                <th>Status</th>
                                                 <th class="no-print">Actions</th>
                                             </tr>
                                         </thead>
@@ -290,6 +342,13 @@ include 'includes/navbar.php';
                                                     <td><?php echo $s['year']; ?></td>
                                                     <td class="text-end">$<?php echo number_format($s['amount'], 2); ?></td>
                                                     <td><?php echo htmlspecialchars($s['notes']); ?></td>
+                                                    <td>
+                                                        <?php if (($s['status'] ?? '') === 'paid'): ?>
+                                                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Paid</span>
+                                                        <?php else: ?>
+                                                            <a href="pay_salary.php?id=<?php echo $s['id']; ?>" class="btn btn-warning btn-sm"><i class="fas fa-dollar-sign me-1"></i>Mark as Paid</a>
+                                                        <?php endif; ?>
+                                                    </td>
                                                     <td class="no-print">
                                                         <div class="btn-group btn-group-sm">
                                                             <a href="edit_salary.php?id=<?php echo $s['id']; ?>" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>

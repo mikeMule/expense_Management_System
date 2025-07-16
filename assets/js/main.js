@@ -1,40 +1,24 @@
 // Main JavaScript functionality for Expense Management System
-document.addEventListener('DOMContentLoaded', function () {
-  // Initialize tooltips
+;(function () {
+  // Tooltips
   var tooltipTriggerList = [].slice.call(
     document.querySelectorAll('[data-bs-toggle="tooltip"]')
   )
-  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl)
+  tooltipTriggerList.forEach(function (el) {
+    new bootstrap.Tooltip(el)
   })
 
-  // Initialize popovers
+  // Popovers
   var popoverTriggerList = [].slice.call(
     document.querySelectorAll('[data-bs-toggle="popover"]')
   )
-  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-    return new bootstrap.Popover(popoverTriggerEl)
-  })
-
-  // Confirmation dialogs for delete actions
-  const deleteButtons = document.querySelectorAll('.btn-delete')
-  deleteButtons.forEach((button) => {
-    button.addEventListener('click', function (e) {
-      e.preventDefault()
-      const itemName = this.getAttribute('data-item') || 'this item'
-      if (
-        confirm(
-          `Are you sure you want to delete ${itemName}? This action cannot be undone.`
-        )
-      ) {
-        window.location.href = this.href
-      }
-    })
+  popoverTriggerList.forEach(function (el) {
+    new bootstrap.Popover(el)
   })
 
   // Form validation
-  const forms = document.querySelectorAll('.needs-validation')
-  forms.forEach((form) => {
+  var forms = document.querySelectorAll('.needs-validation')
+  forms.forEach(function (form) {
     form.addEventListener('submit', function (e) {
       if (!form.checkValidity()) {
         e.preventDefault()
@@ -44,73 +28,62 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   })
 
-  // Auto-hide alerts after 5 seconds
-  const alerts = document.querySelectorAll('.alert:not(.alert-permanent)')
-  alerts.forEach((alert) => {
-    setTimeout(() => {
-      const bsAlert = new bootstrap.Alert(alert)
+  // Auto-hide alerts
+  var alerts = document.querySelectorAll('.alert:not(.alert-permanent)')
+  alerts.forEach(function (alert) {
+    setTimeout(function () {
+      var bsAlert = new bootstrap.Alert(alert)
       bsAlert.close()
     }, 5000)
   })
 
-  // Format currency inputs
-  const currencyInputs = document.querySelectorAll('input[data-currency]')
-  currencyInputs.forEach((input) => {
+  // Currency input formatting
+  var currencyInputs = document.querySelectorAll('input[data-currency]')
+  currencyInputs.forEach(function (input) {
     input.addEventListener('blur', function () {
-      const value = parseFloat(this.value)
-      if (!isNaN(value)) {
-        this.value = value.toFixed(2)
-      }
+      var value = parseFloat(this.value)
+      if (!isNaN(value)) this.value = value.toFixed(2)
     })
   })
 
-  // Search functionality
-  const searchInput = document.getElementById('searchInput')
+  // Search box for tables
+  var searchInput = document.getElementById('searchInput')
   if (searchInput) {
     searchInput.addEventListener('keyup', function () {
-      const searchTerm = this.value.toLowerCase()
-      const tableRows = document.querySelectorAll('tbody tr')
-
-      tableRows.forEach((row) => {
-        const text = row.textContent.toLowerCase()
-        if (text.includes(searchTerm)) {
-          row.style.display = ''
-        } else {
-          row.style.display = 'none'
-        }
+      var searchTerm = this.value.toLowerCase()
+      var tableRows = document.querySelectorAll('tbody tr')
+      tableRows.forEach(function (row) {
+        var text = row.textContent.toLowerCase()
+        row.style.display = text.includes(searchTerm) ? '' : 'none'
       })
     })
   }
 
-  // Date range picker functionality
-  const dateFilterForm = document.getElementById('dateFilterForm')
+  // Date range picker
+  var dateFilterForm = document.getElementById('dateFilterForm')
   if (dateFilterForm) {
-    const startDate = document.getElementById('start_date')
-    const endDate = document.getElementById('end_date')
-
+    var startDate = document.getElementById('start_date')
+    var endDate = document.getElementById('end_date')
     if (startDate && endDate) {
       startDate.addEventListener('change', function () {
         endDate.min = this.value
       })
-
       endDate.addEventListener('change', function () {
         startDate.max = this.value
       })
     }
   }
 
-  // Export functionality
-  const exportButtons = document.querySelectorAll('.btn-export')
-  exportButtons.forEach((button) => {
+  // Export buttons
+  var exportButtons = document.querySelectorAll('.btn-export')
+  exportButtons.forEach(function (button) {
     button.addEventListener('click', function () {
-      const spinner = this.querySelector('.spinner-border')
-      const text = this.querySelector('.btn-text')
-
+      var spinner = this.querySelector('.spinner-border')
+      var text = this.querySelector('.btn-text')
       if (spinner && text) {
         spinner.classList.remove('d-none')
         text.textContent = 'Exporting...'
         this.disabled = true
-
         setTimeout(() => {
           spinner.classList.add('d-none')
           text.textContent = this.getAttribute('data-original-text') || 'Export'
@@ -119,23 +92,60 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     })
   })
-})
 
-// Page Slide Animation
-;(function () {
+  // Page Slide Animation
   var main = document.querySelector('.page-animate')
-  if (!main) return
-  var lastPage = sessionStorage.getItem('lastPage')
-  var currentPage = window.location.pathname.split('/').pop()
-  if (lastPage === 'dashboard.php' && currentPage === 'transactions.php') {
-    main.classList.add('slide-in-right')
-  } else if (
-    lastPage === 'transactions.php' &&
-    currentPage !== 'transactions.php'
-  ) {
-    main.classList.add('slide-in-left')
+  if (main) {
+    var lastPage = sessionStorage.getItem('lastPage')
+    var currentPage = window.location.pathname.split('/').pop()
+    if (lastPage === 'dashboard.php' && currentPage === 'transactions.php') {
+      main.classList.add('slide-in-right')
+    } else if (
+      lastPage === 'transactions.php' &&
+      currentPage !== 'transactions.php'
+    ) {
+      main.classList.add('slide-in-left')
+    }
+    sessionStorage.setItem('lastPage', currentPage)
   }
-  sessionStorage.setItem('lastPage', currentPage)
+
+  // Profile Modal (custom)
+  var profileBtn = document.getElementById('userProfileModalBtn')
+  var customModal = document.getElementById('userProfileModalCustom')
+  var closeBtn = document.getElementById('closeProfileModalCustom')
+  if (profileBtn && customModal) {
+    profileBtn.addEventListener('click', function (e) {
+      e.preventDefault()
+      customModal.style.display = 'flex'
+      document.body.classList.add('modal-open')
+    })
+  }
+  if (closeBtn && customModal) {
+    closeBtn.addEventListener('click', function () {
+      customModal.style.display = 'none'
+      document.body.classList.remove('modal-open')
+    })
+  }
+  if (customModal) {
+    customModal.addEventListener('click', function (e) {
+      if (e.target === customModal) {
+        customModal.style.display = 'none'
+        document.body.classList.remove('modal-open')
+      }
+    })
+  }
+
+  // Fallback: Ensure Bootstrap dropdowns are initialized if JS loads after DOM
+  if (window.bootstrap) {
+    document
+      .querySelectorAll('.dropdown-toggle')
+      .forEach(function (dropdownToggleEl) {
+        if (!dropdownToggleEl.hasAttribute('data-bs-toggle-initialized')) {
+          new bootstrap.Dropdown(dropdownToggleEl)
+          dropdownToggleEl.setAttribute('data-bs-toggle-initialized', 'true')
+        }
+      })
+  }
 })()
 
 // Utility functions

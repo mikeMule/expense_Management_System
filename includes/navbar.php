@@ -28,10 +28,14 @@ if (isset($_SESSION['user_id'])): ?>
                             <i class="fas fa-users me-1"></i>Employees
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'salaries.php' ? 'active' : ''; ?>" href="salaries.php">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle <?php echo in_array(basename($_SERVER['PHP_SELF']), ['salaries.php', 'pending_salaries.php']) ? 'active' : ''; ?>" href="#" id="salariesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-money-check-alt me-1"></i>Salaries
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="salariesDropdown">
+                            <li><a class="dropdown-item <?php echo basename($_SERVER['PHP_SELF']) == 'salaries.php' ? 'active' : ''; ?>" href="salaries.php"><i class="fas fa-list me-1"></i>All Salaries</a></li>
+                            <li><a class="dropdown-item <?php echo basename($_SERVER['PHP_SELF']) == 'pending_salaries.php' ? 'active' : ''; ?>" href="pending_salaries.php"><i class="fas fa-clock me-1"></i>Pending Salaries</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'reports.php' ? 'active' : ''; ?>" href="reports.php">
