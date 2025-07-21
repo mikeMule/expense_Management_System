@@ -18,6 +18,9 @@ if (session_status() === PHP_SESSION_NONE) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!-- Custom CSS -->
     <link href="assets/css/style.css" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">

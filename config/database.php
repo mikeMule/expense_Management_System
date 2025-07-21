@@ -1,10 +1,13 @@
 <?php
-// Database configuration
+// Database credentials
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'expense_management');
-define('DB_PORT', 3308);
+define('DB_PORT', 3308); // Optional: specify port if not default 3306
+
+// Run the migration script after defining credentials
+require_once __DIR__ . '/migrate.php';
 
 // Application configuration
 define('APP_NAME', 'Expense Management System');

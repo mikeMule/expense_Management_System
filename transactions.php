@@ -174,6 +174,7 @@ include 'includes/navbar.php';
                                                 <th>Category</th>
                                                 <th class="text-end">Amount</th>
                                                 <th>Notes</th>
+                                                <th>Attachment</th>
                                                 <th class="no-print">Actions</th>
                                             </tr>
                                         </thead>
@@ -218,6 +219,26 @@ include 'includes/navbar.php';
                                                             <span class="text-muted">-</span>
                                                         <?php endif; ?>
                                                     </td>
+                                                    <td>
+                                                        <?php if (!empty($t['attachment_path'])):
+                                                            $file_ext = strtolower(pathinfo($t['attachment_path'], PATHINFO_EXTENSION));
+                                                            $icon_class = 'fa-file';
+                                                            $icon_color = 'text-secondary';
+                                                            if (in_array($file_ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                                                $icon_class = 'fa-file-image';
+                                                                $icon_color = 'text-primary';
+                                                            } elseif ($file_ext === 'pdf') {
+                                                                $icon_class = 'fa-file-pdf';
+                                                                $icon_color = 'text-danger';
+                                                            }
+                                                        ?>
+                                                            <a href="<?php echo htmlspecialchars($t['attachment_path']); ?>" target="_blank" title="View Attachment">
+                                                                <i class="fas <?php echo $icon_class; ?> fa-lg <?php echo $icon_color; ?>"></i>
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">-</span>
+                                                        <?php endif; ?>
+                                                    </td>
                                                     <td class="no-print">
                                                         <div class="btn-group btn-group-sm">
                                                             <a href="edit_transaction.php?id=<?php echo $t['id']; ?>"
@@ -244,7 +265,7 @@ include 'includes/navbar.php';
                                                         Net: $<?php echo number_format($total_income - $total_expenses, 2); ?>
                                                     </div>
                                                 </th>
-                                                <th colspan="2"></th>
+                                                <th colspan="3"></th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -257,5 +278,21 @@ include 'includes/navbar.php';
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Flatpickr
+        flatpickr("#start_date", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "F j, Y",
+        });
+        flatpickr("#end_date", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "F j, Y",
+        });
+    });
+</script>
 
 <?php include 'includes/footer.php'; ?>

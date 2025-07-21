@@ -46,6 +46,7 @@ CREATE TABLE transactions (
     description VARCHAR(255),
     transaction_date DATE NOT NULL,
     notes TEXT,
+    attachment_path VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
