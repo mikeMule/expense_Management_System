@@ -58,11 +58,13 @@ class Report
                   FROM categories c 
                   LEFT JOIN transactions t ON c.id = t.category_id AND t.type = 'expense'";
 
+        $where_clauses = ["c.type = 'expense'"];
         if ($start_date && $end_date) {
-            $query .= " AND t.transaction_date BETWEEN :start_date AND :end_date";
+            $where_clauses[] = "t.transaction_date BETWEEN :start_date AND :end_date";
         }
 
-        $query .= " WHERE c.type = 'expense' GROUP BY c.id, c.name ORDER BY total DESC";
+        $query .= " WHERE " . implode(' AND ', $where_clauses);
+        $query .= " GROUP BY c.id, c.name ORDER BY total DESC";
 
         $this->db->query($query);
 
@@ -80,11 +82,13 @@ class Report
                   FROM categories c 
                   LEFT JOIN transactions t ON c.id = t.category_id AND t.type = 'income'";
 
+        $where_clauses = ["c.type = 'income'"];
         if ($start_date && $end_date) {
-            $query .= " AND t.transaction_date BETWEEN :start_date AND :end_date";
+            $where_clauses[] = "t.transaction_date BETWEEN :start_date AND :end_date";
         }
 
-        $query .= " WHERE c.type = 'income' GROUP BY c.id, c.name ORDER BY total DESC";
+        $query .= " WHERE " . implode(' AND ', $where_clauses);
+        $query .= " GROUP BY c.id, c.name ORDER BY total DESC";
 
         $this->db->query($query);
 
