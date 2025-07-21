@@ -15,56 +15,10 @@ $employee = new Employee();
 $employees = $employee->getAllEmployees();
 $employee_count = $employee->getEmployeeCount();
 
-// Handle success/error messages
+// Handle success/error messages from session
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
-
-// Handle add employee form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_employee'])) {
-    $first_name = trim($_POST['first_name'] ?? '');
-    $last_name = trim($_POST['last_name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
-    $position = trim($_POST['position'] ?? '');
-    $monthly_salary = floatval($_POST['monthly_salary'] ?? 0);
-    $hire_date = trim($_POST['hire_date'] ?? date('Y-m-d'));
-    $employee_id = $_POST['employee_id'] ?? ('MW-' . random_int(100000, 999999));
-    if ($first_name && $last_name && $position && $monthly_salary > 0 && $hire_date && $email) {
-        $max_attempts = 5;
-        $attempt = 0;
-        $success_add = false;
-        while ($attempt < $max_attempts && !$success_add) {
-            // Check for duplicate employee_id
-            $duplicate = false;
-            foreach ($employees as $emp) {
-                if ($emp['employee_id'] === $employee_id) {
-                    $duplicate = true;
-                    break;
-                }
-            }
-            if ($duplicate) {
-                $employee_id = 'MW-' . random_int(100000, 999999);
-                $attempt++;
-                continue;
-            }
-            $result = $employee->addEmployee($employee_id, $first_name, $last_name, $email, $phone, $position, $monthly_salary, $hire_date);
-            if ($result) {
-                $success = 'Employee added successfully. Employee ID: ' . $employee_id;
-                $success_add = true;
-            } else {
-                $error = 'Failed to add employee. Employee ID may already exist.';
-                $attempt++;
-                $employee_id = 'MW-' . random_int(100000, 999999);
-            }
-        }
-        if (!$success_add) {
-            $error = 'Failed to add employee after multiple attempts. Please try again.';
-        }
-    } else {
-        $error = 'Please fill all required fields.';
-    }
-}
 
 include 'includes/navbar.php';
 ?>
@@ -106,7 +60,7 @@ include 'includes/navbar.php';
             <div class="row">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-users me-2"></i>Employee Management</h2>
+                        <h2><i class="fas fa-users me-2"></i>Employee List (<span class="employee-count-blinker"><?php echo count($employees); ?></span>)</h2>
                         <?php if ($employee_count < 10): ?>
                             <button type="button" class="btn btn-primary" id="openAddEmployee2025Modal" <?php if ($employee_count >= 10) echo 'disabled'; ?>>
                                 <i class="fas fa-user-plus me-1"></i>Add Employee
@@ -131,62 +85,6 @@ include 'includes/navbar.php';
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     <?php endif; ?>
-
-                    <!-- Employee Statistics -->
-                    <div class="row mb-4">
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card stat-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h3 class="stat-value text-primary"><?php echo count($employees); ?></h3>
-                                            <p class="stat-label">Total Employees</p>
-                                        </div>
-                                        <i class="fas fa-users fa-2x text-primary"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card stat-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h3 class="stat-value text-success"><?php echo $employee_count; ?></h3>
-                                            <p class="stat-label">Active Employees</p>
-                                        </div>
-                                        <i class="fas fa-user-check fa-2x text-success"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card stat-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h3 class="stat-value text-info">$<?php echo number_format($employee->getTotalMonthlySalaries(), 2); ?></h3>
-                                            <p class="stat-label">Monthly Payroll</p>
-                                        </div>
-                                        <i class="fas fa-money-check-alt fa-2x text-info"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card stat-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h3 class="stat-value text-warning"><?php echo 10 - count($employees); ?></h3>
-                                            <p class="stat-label">Available Slots</p>
-                                        </div>
-                                        <i class="fas fa-user-plus fa-2x text-warning"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Filters -->
                     <div class="card mb-4">
@@ -274,13 +172,20 @@ include 'includes/navbar.php';
                                                         <?php echo $emp['hire_date'] ? date('M d, Y', strtotime($emp['hire_date'])) : '-'; ?>
                                                     </td>
                                                     <td>
-                                                        <span class="badge bg-<?php echo $emp['status'] == 'active' ? 'success' : 'secondary'; ?>">
-                                                            <i class="fas fa-<?php echo $emp['status'] == 'active' ? 'check' : 'times'; ?> me-1"></i>
-                                                            <?php echo ucfirst($emp['status']); ?>
-                                                        </span>
+                                                        <?php $status_class = $emp['status'] == 'active' ? 'status-select-active' : 'status-select-inactive'; ?>
+                                                        <select class="form-select form-select-sm employee-status-select <?php echo $status_class; ?>" data-employee-id="<?php echo $emp['id']; ?>" data-original-status="<?php echo $emp['status']; ?>">
+                                                            <option value="active" <?php echo $emp['status'] == 'active' ? 'selected' : ''; ?>>Active</option>
+                                                            <option value="inactive" <?php echo $emp['status'] == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                                                        </select>
+                                                        <div class="spinner-border spinner-border-sm text-primary ms-2 d-none" role="status">
+                                                            <span class="visually-hidden">Loading...</span>
+                                                        </div>
                                                     </td>
                                                     <td class="no-print">
                                                         <div class="btn-group btn-group-sm">
+                                                            <button type="button" class="btn btn-outline-info btn-view-details" data-employee-id="<?php echo $emp['id']; ?>" title="View Details">
+                                                                <i class="fas fa-eye"></i>
+                                                            </button>
                                                             <a href="edit_employee.php?id=<?php echo $emp['id']; ?>"
                                                                 class="btn btn-outline-primary" title="Edit">
                                                                 <i class="fas fa-edit"></i>
@@ -302,9 +207,6 @@ include 'includes/navbar.php';
                     </div>
 
                     <!-- Add Employee Modal (2025Modal) -->
-                    <button type="button" class="btn btn-primary" id="openAddEmployee2025Modal" <?php if ($employee_count >= 10) echo 'disabled'; ?>>
-                        <i class="fas fa-user-plus me-1"></i>Add Employee
-                    </button>
                     <div class="modal2025-overlay hide" id="addEmployee2025Modal">
                         <div class="modal2025-content">
                             <div class="modal2025-header">
@@ -375,7 +277,7 @@ include 'includes/navbar.php';
                                             <label for="hire_date" class="form-label">Hire Date</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                                <input type="date" class="form-control" id="hire_date" name="hire_date" value="<?php echo date('Y-m-d'); ?>" required placeholder="YYYY-MM-DD">
+                                                <input type="text" class="form-control" id="hire_date" name="hire_date" value="<?php echo date('Y-m-d'); ?>" required placeholder="YYYY-MM-DD">
                                             </div>
                                         </div>
                                     </div>
@@ -393,87 +295,24 @@ include 'includes/navbar.php';
     </div>
 </div>
 
-<!-- DataTables JS & CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    $(document).ready(function() {
-        var employeeTable = $('#employeeTable').DataTable({
-            responsive: true,
-            pageLength: 10,
-            language: {
-                search: "<i class='fas fa-search'></i> Search:",
-                searchPlaceholder: "Type to filter employees..."
-            },
-            columnDefs: [{
-                    targets: [0],
-                    className: 'fw-bold text-primary'
-                },
-                {
-                    targets: '_all',
-                    className: 'align-middle'
-                }
-            ]
-        });
-        // Search functionality
-        $('#searchInput').on('keyup', function() {
-            employeeTable.search(this.value).draw();
-        });
-        // Status filter
-        $('#statusFilter').on('change', function() {
-            employeeTable.column(6).search(this.value).draw();
-        });
-        // Fix for modal freeze: re-initialize modal on show
-        var addEmployeeModal = document.getElementById('addEmployeeModal');
-        if (addEmployeeModal) {
-            addEmployeeModal.addEventListener('show.bs.modal', function() {
-                document.body.classList.add('modal-open');
-                setTimeout(function() {
-                    // Add 2025Modal class to the backdrop
-                    var backdrop = document.querySelector('.modal-backdrop');
-                    if (backdrop) {
-                        backdrop.classList.add('2025Modal');
-                    }
-                }, 10);
-            });
-            addEmployeeModal.addEventListener('hidden.bs.modal', function() {
-                document.body.classList.remove('modal-open');
-                // Remove 2025Modal class from the backdrop
-                var backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) {
-                    backdrop.classList.remove('2025Modal');
-                }
-            });
-        }
-    });
-</script>
-<script>
-    // Modal 2025 open/close logic
-    const openBtn = document.getElementById('openAddEmployee2025Modal');
-    const modal2025 = document.getElementById('addEmployee2025Modal');
-    const closeBtn = document.getElementById('closeAddEmployee2025Modal');
-    const closeBtnFooter = document.getElementById('closeAddEmployee2025ModalFooter');
-    if (openBtn && modal2025) {
-        openBtn.addEventListener('click', function() {
-            modal2025.classList.remove('hide');
-            modal2025.style.display = 'flex';
-        });
-    }
+<!-- Employee Details Modal -->
+<div class="modal fade" id="employeeDetailsModal" tabindex="-1" aria-labelledby="employeeDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="employeeDetailsModalLabel">Employee Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="employeeDetailsContent">
+                    <!-- Details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    function close2025Modal() {
-        modal2025.classList.add('hide');
-        setTimeout(() => {
-            modal2025.style.display = 'none';
-        }, 300);
-    }
-    if (closeBtn) closeBtn.addEventListener('click', close2025Modal);
-    if (closeBtnFooter) closeBtnFooter.addEventListener('click', close2025Modal);
-    // Close on overlay click
-    modal2025.addEventListener('click', function(e) {
-        if (e.target === modal2025) close2025Modal();
-    });
-</script>
 <?php include 'includes/footer.php'; ?>

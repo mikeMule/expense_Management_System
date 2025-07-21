@@ -3,10 +3,23 @@ require_once 'config/database.php';
 require_once 'classes/Auth.php';
 require_once 'classes/Transaction.php';
 
+$auth = new Auth();
+$auth->requireLogin();
+
+$transaction = new Transaction();
+
+// Pre-select type if provided in URL
+$preselected_type = $_GET['type'] ?? 'expense';
+
+// Get categories for dropdown
+$categories = $transaction->getCategories();
+
+// All PHP logic is now complete. We can start the HTML output.
 $page_title = 'Add Transaction';
-// We will include the header, but add our specific modal styles right after
 include 'includes/header.php';
 ?>
+
+<!-- Specific styles for this page's modals, safely included after the header -->
 <style>
     /* Simple Modal for Image Preview */
     .preview-modal {
@@ -63,18 +76,6 @@ include 'includes/header.php';
         text-decoration: none;
     }
 </style>
-<?php
-$auth = new Auth();
-$auth->requireLogin();
-
-$transaction = new Transaction();
-
-// Pre-select type if provided in URL
-$preselected_type = $_GET['type'] ?? 'expense';
-
-// Get categories for dropdown
-$categories = $transaction->getCategories();
-?>
 
 <!-- Image Preview Modal -->
 <div id="imagePreviewModal" class="preview-modal">

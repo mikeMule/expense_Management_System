@@ -6,11 +6,10 @@ define('DB_PASS', '');
 define('DB_NAME', 'expense_management');
 define('DB_PORT', 3308); // Optional: specify port if not default 3306
 
-// Run the migration script after defining credentials
-require_once __DIR__ . '/migrate.php';
+require_once 'migrate.php';
 
 // Application configuration
-define('APP_NAME', 'Expense Management System');
+define('APP_NAME', 'Mule Wave Expense Tracker');
 define('APP_VERSION', '1.0.0');
 define('BASE_URL', 'http://localhost/expense-management');
 

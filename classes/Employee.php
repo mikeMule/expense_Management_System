@@ -68,6 +68,14 @@ class Employee
         return $this->db->execute();
     }
 
+    public function updateEmployeeStatus($id, $status)
+    {
+        $this->db->query('UPDATE employees SET status = :status WHERE id = :id');
+        $this->db->bind(':id', $id);
+        $this->db->bind(':status', $status);
+        return $this->db->execute();
+    }
+
     public function deleteEmployee($id)
     {
         $this->db->query('DELETE FROM employees WHERE id = :id');
@@ -152,19 +160,52 @@ class Employee
     public function generateMonthlySalaries($month, $year)
     {
         $employees = $this->getActiveEmployees();
-        $success = 0;
+        $success_count = 0;
 
         foreach ($employees as $employee) {
-            try {
-                $this->addSalaryPayment($employee['id'], $month, $year, $employee['monthly_salary']);
-                $success++;
-            } catch (Exception $e) {
-                // Skip if already exists
-                continue;
+            // Check if payment already exists
+            $this->db->query('SELECT COUNT(*) as count FROM salary_payments WHERE employee_id = :employee_id AND month = :month AND year = :year');
+            $this->db->bind(':employee_id', $employee['id']);
+            $this->db->bind(':month', $month);
+            $this->db->bind(':year', $year);
+            if ($this->db->single()['count'] > 0) {
+                continue; // Skip if already exists
+            }
+
+            // Use the original addSalaryPayment to create a pending record
+            if ($this->addSalaryPayment($employee['id'], $month, $year, $employee['monthly_salary'])) {
+                $success_count++;
             }
         }
+        return $success_count;
+    }
 
-        return $success;
+    public function getSalaryPaymentById($id)
+    {
+        $this->db->query('SELECT sp.*, e.first_name, e.last_name, e.employee_id
+                          FROM salary_payments sp
+                          JOIN employees e ON sp.employee_id = e.id
+                          WHERE sp.id = :id');
+        $this->db->bind(':id', $id);
+        return $this->db->single();
+    }
+
+    public function markSalaryAsPaid($payment_id)
+    {
+        $this->db->query("UPDATE salary_payments SET status = 'paid', payment_date = :payment_date WHERE id = :id");
+
+        $payment_date = date('Y-m-d H:i:s.u');
+        $this->db->bind(':payment_date', $payment_date);
+        $this->db->bind(':id', $payment_id);
+
+        return $this->db->execute();
+    }
+
+    public function revertSalaryPaymentStatus($id)
+    {
+        $this->db->query("UPDATE salary_payments SET status = 'pending', payment_date = NULL WHERE id = :id");
+        $this->db->bind(':id', $id);
+        return $this->db->execute();
     }
 
     public function deleteSalaryPayment($id)

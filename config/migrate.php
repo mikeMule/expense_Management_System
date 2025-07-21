@@ -1,36 +1,45 @@
 <?php
-require_once __DIR__ . '/database.php';
+// This check ensures that the script is not called directly, but rather included.
+if (count(get_included_files()) === 1) {
+    // If the script is called directly, you might want to show an error or redirect.
+    // For simplicity, we'll just exit.
+    exit('This script cannot be accessed directly.');
+}
 
 function run_migrations()
 {
     try {
-        // Create a new PDO instance for migration
-        $pdo = new PDO(
-            'mysql:host=' . DB_HOST . ';port=' . (defined('DB_PORT') ? DB_PORT : 3306) . ';charset=utf8mb4',
-            DB_USER,
-            DB_PASS,
-            [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-            ]
-        );
+        $pdo = new PDO('mysql:host=' . DB_HOST . ';port=' . (defined('DB_PORT') ? DB_PORT : 3306), DB_USER, DB_PASS, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ]);
 
-        // Create database if it doesn't exist
-        $pdo->exec('CREATE DATABASE IF NOT EXISTS ' . DB_NAME);
-        $pdo->exec('USE ' . DB_NAME);
+        $pdo->exec('CREATE DATABASE IF NOT EXISTS `' . DB_NAME . '`');
+        $pdo->exec('USE `' . DB_NAME . '`');
 
-        // Manually run the first migration to create the migrations table if it's not there
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `migrations` (
-            `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `migration_name` VARCHAR(255) NOT NULL,
-            `executed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        // Check if migrations table exists
+        $stmt = $pdo->query("SHOW TABLES LIKE 'migrations'");
+        if ($stmt->rowCount() == 0) {
+            // If not, create it by executing the first migration file
+            $migration_file = __DIR__ . '/../database/migrations/001_create_migrations_table.sql';
+            if (file_exists($migration_file)) {
+                $sql = file_get_contents($migration_file);
+                $pdo->exec($sql);
+                // Log this first migration
+                $log_stmt = $pdo->prepare('INSERT INTO migrations (migration_name) VALUES (?)');
+                $log_stmt->execute([basename($migration_file)]);
+            }
+        }
 
-        // Get all executed migration names from the database
+        // Check if a 'Salaries' category exists, if not, create it.
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM categories WHERE name = 'Salaries' AND type = 'expense'");
+        $stmt->execute();
+        if ($stmt->fetchColumn() == 0) {
+            $pdo->exec("INSERT INTO categories (name, type) VALUES ('Salaries', 'expense')");
+        }
+
         $stmt = $pdo->query('SELECT migration_name FROM migrations');
         $executed_migrations = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-        // Get all migration files from the directory
         $migration_files = glob(__DIR__ . '/../database/migrations/*.sql');
         sort($migration_files);
 
@@ -38,25 +47,30 @@ function run_migrations()
             $migration_name = basename($file);
 
             if (!in_array($migration_name, $executed_migrations)) {
-                // Execute the migration
-                $sql = file_get_contents($file);
-                $pdo->exec($sql);
+                try {
+                    $sql = file_get_contents($file);
 
-                // Log the migration in the database
-                $stmt = $pdo->prepare('INSERT INTO migrations (migration_name) VALUES (:migration_name)');
-                $stmt->execute([':migration_name' => $migration_name]);
+                    if (substr($sql, 0, 3) === "\xEF\xBB\xBF") {
+                        $sql = substr($sql, 3);
+                    }
 
-                // Optional: Log to a file or output for debugging
-                // echo "Executed migration: $migration_name\n";
+                    if (!empty(trim($sql))) {
+                        $pdo->exec($sql);
+                        $log_stmt = $pdo->prepare('INSERT INTO migrations (migration_name) VALUES (?)');
+                        $log_stmt->execute([$migration_name]);
+                    }
+                } catch (PDOException $e) {
+                    $log_message = "[" . date('Y-m-d H:i:s') . "] Migration of file '{$migration_name}' failed: " . $e->getMessage() . "\n";
+                    error_log($log_message, 3, __DIR__ . '/../logs/migration_errors.log');
+                    die("A critical database error occurred while processing '{$migration_name}'. Please check the logs.");
+                }
             }
         }
     } catch (PDOException $e) {
-        // Log error to a file and terminate
-        error_log("Migration failed: " . $e->getMessage() . "\n", 3, __DIR__ . '/../logs/migration_errors.log');
-        // A more user-friendly error page should be shown in a real application
-        die("A critical database error occurred. Please check the logs.");
+        $log_message = "[" . date('Y-m-d H:i:s') . "] Migration setup failed: " . $e->getMessage() . "\n";
+        error_log($log_message, 3, __DIR__ . '/../logs/migration_errors.log');
+        die("A critical database error occurred during setup. Please check the logs.");
     }
 }
 
-// Execute migrations
 run_migrations();

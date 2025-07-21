@@ -139,7 +139,7 @@ include 'includes/navbar.php';
                                 <i class="fas fa-plus me-1"></i>Add Salary Information
                             </button>
                             <button type="button" class="btn btn-primary" id="openGenerateSalary2025Modal">
-                                <i class="fas fa-plus-circle me-1"></i>Generate Monthly Salaries
+                                <i class="fas fa-cogs me-1"></i>Bulk Generate
                             </button>
                         </div>
                     </div>
@@ -216,7 +216,7 @@ include 'includes/navbar.php';
                     <!-- Salary Statistics -->
                     <div class="row mb-4">
                         <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card stat-card h-100">
+                            <div class="card stat-card h-100 stat-card-sm">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -230,7 +230,7 @@ include 'includes/navbar.php';
                         </div>
 
                         <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card stat-card h-100">
+                            <div class="card stat-card h-100 stat-card-sm">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -244,7 +244,7 @@ include 'includes/navbar.php';
                         </div>
 
                         <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card stat-card h-100">
+                            <div class="card stat-card h-100 stat-card-sm">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -260,7 +260,7 @@ include 'includes/navbar.php';
                         </div>
 
                         <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card stat-card h-100">
+                            <div class="card stat-card h-100 stat-card-sm">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -284,7 +284,7 @@ include 'includes/navbar.php';
                                     <div class="col-md-4 mb-2">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span><?php echo htmlspecialchars($pending['first_name'] . ' ' . $pending['last_name']); ?></span>
-                                            <a href="pay_salary.php?id=<?php echo $pending['id']; ?>" class="btn btn-sm btn-success">
+                                            <a href="confirm_pay_salary.php?id=<?php echo $pending['id']; ?>" class="btn btn-sm btn-success">
                                                 <i class="fas fa-dollar-sign me-1"></i>Pay
                                             </a>
                                         </div>
@@ -326,8 +326,7 @@ include 'includes/navbar.php';
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Employee</th>
-                                                <th>Month</th>
-                                                <th>Year</th>
+                                                <th>Payment Period & Date</th>
                                                 <th class="text-end">Amount</th>
                                                 <th>Notes</th>
                                                 <th>Status</th>
@@ -338,21 +337,40 @@ include 'includes/navbar.php';
                                             <?php foreach ($salary_payments as $s): ?>
                                                 <tr>
                                                     <td><strong><?php echo htmlspecialchars(($s['first_name'] ?? '') . ' ' . ($s['last_name'] ?? '')); ?> (<?php echo htmlspecialchars($s['employee_id'] ?? ''); ?>)</strong></td>
-                                                    <td><?php echo date('F', mktime(0, 0, 0, $s['month'], 1)); ?></td>
-                                                    <td><?php echo $s['year']; ?></td>
+                                                    <td>
+                                                        <strong><?php echo date('F Y', mktime(0, 0, 0, $s['month'], 1, $s['year'])); ?></strong>
+                                                        <br>
+                                                        <?php if (!empty($s['payment_date'])): ?>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-clock me-1"></i>
+                                                                <?php
+                                                                try {
+                                                                    $date = new DateTime($s['payment_date']);
+                                                                    echo $date->format('M d, Y - h:i:s A');
+                                                                } catch (Exception $e) {
+                                                                    echo 'Invalid Date';
+                                                                }
+                                                                ?>
+                                                            </small>
+                                                        <?php else: ?>
+                                                            <small class="text-muted">Pending Payment</small>
+                                                        <?php endif; ?>
+                                                    </td>
                                                     <td class="text-end">$<?php echo number_format($s['amount'], 2); ?></td>
                                                     <td><?php echo htmlspecialchars($s['notes']); ?></td>
                                                     <td>
                                                         <?php if (($s['status'] ?? '') === 'paid'): ?>
                                                             <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Paid</span>
                                                         <?php else: ?>
-                                                            <a href="pay_salary.php?id=<?php echo $s['id']; ?>" class="btn btn-warning btn-sm"><i class="fas fa-dollar-sign me-1"></i>Mark as Paid</a>
+                                                            <a href="confirm_pay_salary.php?id=<?php echo $s['id']; ?>" class="btn btn-warning btn-sm"><i class="fas fa-dollar-sign me-1"></i>Mark as Paid</a>
                                                         <?php endif; ?>
                                                     </td>
                                                     <td class="no-print">
                                                         <div class="btn-group btn-group-sm">
                                                             <a href="edit_salary.php?id=<?php echo $s['id']; ?>" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
-                                                            <a href="delete_salary.php?id=<?php echo $s['id']; ?>" class="btn btn-outline-danger btn-delete" data-item="salary payment for <?php echo htmlspecialchars(($s['first_name'] ?? '') . ' ' . ($s['last_name'] ?? '')); ?>" title="Delete"><i class="fas fa-trash"></i></a>
+                                                            <button type="button" class="btn btn-outline-danger btn-delete-salary" data-delete-url="delete_salary.php?id=<?php echo $s['id']; ?>" data-item-name="salary payment for <?php echo htmlspecialchars(($s['first_name'] ?? '') . ' ' . ($s['last_name'] ?? '')); ?>" title="Delete">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -447,13 +465,10 @@ include 'includes/navbar.php';
                         </div>
                     </div>
                     <!-- Generate Monthly Salaries Modal (2025Modal) -->
-                    <button type="button" class="btn btn-primary" id="openGenerateSalary2025Modal">
-                        <i class="fas fa-plus-circle me-1"></i>Generate Monthly Salaries
-                    </button>
                     <div class="modal2025-overlay hide" id="generateSalary2025Modal">
                         <div class="modal2025-content">
                             <div class="modal2025-header">
-                                <span class="modal2025-title"><i class="fas fa-plus-circle me-2"></i>Generate Monthly Salaries</span>
+                                <span class="modal2025-title"><i class="fas fa-cogs me-2"></i>Bulk Generate Salaries</span>
                                 <button type="button" class="modal2025-close" id="closeGenerateSalary2025Modal" aria-label="Close">&times;</button>
                             </div>
                             <form method="POST">
@@ -465,7 +480,7 @@ include 'includes/navbar.php';
                                             <select class="form-select" id="gen_month" name="month" required>
                                                 <?php for ($m = 1; $m <= 12; $m++): ?>
                                                     <option value="<?php echo $m; ?>" <?php echo date('n') == $m ? 'selected' : ''; ?>>
-                                                        <?php echo date('F', mktime(0, 0, 0, $m, 1)); ?>
+                                                        <?php echo date('F (m)', mktime(0, 0, 0, $m, 1)); ?>
                                                     </option>
                                                 <?php endfor; ?>
                                             </select>
@@ -489,10 +504,27 @@ include 'includes/navbar.php';
                                 <div class="modal2025-footer">
                                     <button type="button" class="btn btn-secondary" id="closeGenerateSalary2025ModalFooter">Cancel</button>
                                     <button type="submit" name="generate_salaries" class="btn btn-primary">
-                                        <i class="fas fa-plus-circle me-1"></i>Generate Salaries
+                                        <i class="fas fa-plus-circle me-1"></i>Generate Records
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal2025-overlay hide" id="deleteSalaryConfirmModal">
+                        <div class="modal2025-content" style="max-width: 450px;">
+                            <div class="modal2025-header" style="background-color: #dc3545; color: white;">
+                                <span class="modal2025-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion</span>
+                                <button type="button" class="modal2025-close" data-dismiss-2025="modal" aria-label="Close">&times;</button>
+                            </div>
+                            <div class="py-4 px-3 text-center">
+                                Are you sure you want to delete this record?
+                                <p class="text-muted mt-2 mb-0" id="deleteItemName"></p>
+                            </div>
+                            <div class="modal2025-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss-2025="modal">No, Cancel</button>
+                                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Yes, Delete</a>
+                            </div>
                         </div>
                     </div>
                     <script>

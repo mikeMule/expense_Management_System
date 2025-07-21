@@ -11,298 +11,334 @@ $auth->requireLogin();
 
 $report = new Report();
 $dashboardData = $report->getDashboardData();
+$expense_chart_data = $report->getExpenseBreakdownForChart();
+$income_expense_trend = $report->getIncomeExpenseTrendForChart();
 
 include 'includes/navbar.php';
 ?>
 
 <style>
-    #loading-overlay.swipe-up {
-        animation: swipeUp 0.7s cubic-bezier(0.77, 0, 0.18, 1) forwards;
+    /* Dashboard Grid Layout - Updated for 4 KPIs */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 1.5rem;
     }
 
-    @keyframes swipeUp {
-        0% {
-            transform: translateY(0);
-            opacity: 1;
+    @media (max-width: 991px) {
+        .dashboard-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* KPI Card Style - Rebuilt to match the image */
+    .kpi-card {
+        background: #FFFFFF;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e9ecef;
+    }
+
+    .kpi-card .card-title {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .kpi-card .card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .kpi-card .card-extra {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 1rem;
+    }
+
+    .kpi-card .card-change {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .kpi-card .card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .status-item .details .value {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .status-item-clickable:hover {
+        background-color: rgba(40, 167, 69, 0.1);
+        cursor: pointer;
+        border-radius: 0.5rem;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
         }
 
-        80% {
-            opacity: 1;
+        to {
+            transform: rotate(360deg);
         }
+    }
 
-        100% {
-            transform: translateY(-120%);
-            opacity: 0;
-        }
+    a.kpi-card-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    a.kpi-card-link .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        border-color: #1976d2;
     }
 </style>
 
-<body class="dashboard-page">
-    <div id="loading-overlay">
-        <div class="loader-container">
-            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 1.5rem;">
-                <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.12); background: #fff; display: flex; align-items: center; justify-content: center;">
-                    <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmJteDdjOTMwYXc5Z2x0dHM3Mm5yMzE4ZjB4OGVvY21jOXNhZjhxcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/e90kry2Jse4IbdEcrB/giphy.gif" alt="Loading..." style="width: 100px; height: 100px; object-fit: cover; display: block;" />
-                </div>
+<div class="page-animate">
+    <div class="container-fluid py-4">
+        <!-- Dashboard Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 mb-0">Dashboard</h1>
+                <p class="text-muted">Welcome, <?php echo $_SESSION['full_name'] ?? $_SESSION['username']; ?>!</p>
             </div>
-            <div class="loading-text">Loading...<br>Collecting Data</div>
         </div>
-    </div>
 
-    <div class="page-animate">
-        <div class="container-fluid py-4">
-            <!-- Dashboard Header -->
-            <div class="dashboard-header text-center">
-                <div class="container">
-                    <h1 class="dashboard-title">
-                        <i class="fas fa-tachometer-alt me-3"></i>Dashboard
-                    </h1>
-                    <p class="dashboard-subtitle">Welcome back, <?php echo $_SESSION['full_name'] ?? $_SESSION['username']; ?>!</p>
-                </div>
-            </div>
-
-            <!-- Alerts for pending salaries -->
-            <?php if ($dashboardData['pending_salaries'] > 0): ?>
-                <div class="alert alert-warning" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Attention!</strong> You have <?php echo $dashboardData['pending_salaries']; ?> pending salary payment(s).
-                    <a href="salaries.php" class="alert-link">View Details</a>
-                </div>
-            <?php endif; ?>
-
-            <!-- Financial Overview Cards -->
-            <div class="row mb-4">
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="card stat-card income h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h2 class="stat-value text-success">$<?php echo number_format($dashboardData['total_income'], 2); ?></h2>
-                                    <p class="stat-label">Total Income</p>
-                                </div>
-                                <i class="fas fa-arrow-up fa-2x text-success"></i>
-                            </div>
-                        </div>
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- KPI Cards -->
+            <a href="transactions.php?type=income" class="kpi-card-link">
+                <div class="kpi-card">
+                    <div class="card-title">This Month's Income</div>
+                    <div class="card-value">$<?php echo number_format($dashboardData['monthly_income'], 2); ?></div>
+                    <div class="card-extra">
+                        <span class="card-change text-success"><i class="fas fa-arrow-up"></i> 15%</span>
+                        <div class="card-icon" style="background-color: #e0f2f1; color: #00796b;"><i class="fas fa-dollar-sign"></i></div>
                     </div>
                 </div>
-
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="card stat-card expense h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h2 class="stat-value text-danger">$<?php echo number_format($dashboardData['total_expenses'], 2); ?></h2>
-                                    <p class="stat-label">Total Expenses</p>
-                                </div>
-                                <i class="fas fa-arrow-down fa-2x text-danger"></i>
-                            </div>
-                        </div>
+            </a>
+            <a href="transactions.php?type=expense" class="kpi-card-link">
+                <div class="kpi-card">
+                    <div class="card-title">This Month's Expenses</div>
+                    <div class="card-value">$<?php echo number_format($dashboardData['monthly_expenses'], 2); ?></div>
+                    <div class="card-extra">
+                        <span class="card-change text-danger"><i class="fas fa-arrow-down"></i> 5%</span>
+                        <div class="card-icon" style="background-color: #fff3e0; color: #f57c00;"><i class="fas fa-shopping-cart"></i></div>
                     </div>
                 </div>
-
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="card stat-card balance h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h2 class="stat-value <?php echo $dashboardData['balance'] >= 0 ? 'text-success' : 'text-danger'; ?>">
-                                        $<?php echo number_format($dashboardData['balance'], 2); ?>
-                                    </h2>
-                                    <p class="stat-label">Net Balance</p>
-                                </div>
-                                <i class="fas fa-balance-scale fa-2x text-info"></i>
-                            </div>
-                        </div>
+            </a>
+            <a href="reports.php" class="kpi-card-link">
+                <div class="kpi-card">
+                    <div class="card-title">This Month's Net Balance</div>
+                    <div class="card-value <?php echo $dashboardData['monthly_balance'] >= 0 ? 'text-success' : 'text-danger'; ?>">$<?php echo number_format($dashboardData['monthly_balance'], 2); ?></div>
+                    <div class="card-extra">
+                        <span class="card-change text-success"><i class="fas fa-arrow-up"></i> 10%</span>
+                        <div class="card-icon" style="background-color: #e3f2fd; color: #1976d2;"><i class="fas fa-balance-scale"></i></div>
                     </div>
                 </div>
+            </a>
+            <a href="employees.php" class="kpi-card-link">
+                <div class="kpi-card">
+                    <div class="card-title">Active Employees</div>
+                    <div class="card-value"><?php echo $dashboardData['active_employees']; ?></div>
+                    <div class="card-extra">
+                        <span class="card-change text-muted">View</span>
+                        <div class="card-icon" style="background-color: #f3e5f5; color: #8e24aa;"><i class="fas fa-users"></i></div>
+                    </div>
+                </div>
+            </a>
+        </div>
 
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="card stat-card warning h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h2 class="stat-value text-primary"><?php echo $dashboardData['active_employees']; ?></h2>
-                                    <p class="stat-label">Active Employees</p>
-                                    <small class="text-muted">Monthly Budget: $<?php echo number_format($dashboardData['monthly_salary_budget'], 2); ?></small>
-                                </div>
-                                <i class="fas fa-users fa-2x text-primary"></i>
-                            </div>
+        <!-- Charts and Recent Activity Grid -->
+        <div class="row mt-5">
+            <div class="col-lg-8">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie me-1"></i>Expense Breakdown</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie pt-4 pb-2">
+                            <canvas id="expenseBreakdownChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center small" id="chart-legend">
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Monthly Overview -->
-            <div class="row mb-4">
-                <div class="col-lg-4 col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>This Month</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between">
-                                    <span>Income:</span>
-                                    <span class="text-success fw-bold">$<?php echo number_format($dashboardData['monthly_income'], 2); ?></span>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between">
-                                    <span>Expenses:</span>
-                                    <span class="text-danger fw-bold">$<?php echo number_format($dashboardData['monthly_expenses'], 2); ?></span>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between">
-                                <span class="fw-bold">Balance:</span>
-                                <span class="fw-bold <?php echo $dashboardData['monthly_balance'] >= 0 ? 'text-success' : 'text-danger'; ?>">
-                                    $<?php echo number_format($dashboardData['monthly_balance'], 2); ?>
-                                </span>
-                            </div>
-                        </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line me-1"></i>Income vs Expense (30 Days)</h6>
                     </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h5 class="mb-0"><i class="fas fa-calendar-day me-2"></i>Today</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between">
-                                    <span>Income:</span>
-                                    <span class="text-success fw-bold">$<?php echo number_format($dashboardData['daily_income'], 2); ?></span>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between">
-                                    <span>Expenses:</span>
-                                    <span class="text-danger fw-bold">$<?php echo number_format($dashboardData['daily_expenses'], 2); ?></span>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="text-center">
-                                <a href="add_transaction.php" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-plus me-1"></i>Add Transaction
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Quick Actions</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <a href="add_transaction.php?type=income" class="btn btn-success btn-sm">
-                                    <i class="fas fa-plus-circle me-1"></i>Add Income
-                                </a>
-                                <a href="add_transaction.php?type=expense" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-minus-circle me-1"></i>Add Expense
-                                </a>
-                                <a href="employees.php" class="btn btn-info btn-sm">
-                                    <i class="fas fa-user-plus me-1"></i>Manage Employees
-                                </a>
-                                <a href="reports.php" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-chart-bar me-1"></i>View Reports
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Transactions -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Transactions</h5>
-                            <a href="transactions.php" class="btn btn-outline-primary btn-sm">
-                                View All <i class="fas fa-arrow-right ms-1"></i>
-                            </a>
-                        </div>
-                        <div class="card-body">
-                            <?php if (empty($dashboardData['recent_transactions'])): ?>
-                                <div class="text-center py-4 text-muted">
-                                    <i class="fas fa-inbox fa-3x mb-3"></i>
-                                    <p>No transactions found. <a href="add_transaction.php">Add your first transaction</a></p>
-                                </div>
-                            <?php else: ?>
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Type</th>
-                                                <th>Description</th>
-                                                <th>Category</th>
-                                                <th class="text-end">Amount</th>
-                                                <th class="no-print">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($dashboardData['recent_transactions'] as $transaction): ?>
-                                                <tr>
-                                                    <td><?php echo date('M d, Y', strtotime($transaction['transaction_date'])); ?></td>
-                                                    <td>
-                                                        <span class="badge bg-<?php echo $transaction['type'] == 'income' ? 'success' : 'danger'; ?>">
-                                                            <i class="fas fa-<?php echo $transaction['type'] == 'income' ? 'arrow-up' : 'arrow-down'; ?> me-1"></i>
-                                                            <?php echo ucfirst($transaction['type']); ?>
-                                                        </span>
-                                                    </td>
-                                                    <td><?php echo htmlspecialchars($transaction['description']); ?></td>
-                                                    <td>
-                                                        <span class="badge bg-secondary"><?php echo htmlspecialchars($transaction['category_name'] ?? 'N/A'); ?></span>
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <span class="fw-bold <?php echo $transaction['type'] == 'income' ? 'text-success' : 'text-danger'; ?>">
-                                                            <?php echo $transaction['type'] == 'income' ? '+' : '-'; ?>$<?php echo number_format($transaction['amount'], 2); ?>
-                                                        </span>
-                                                    </td>
-                                                    <td class="no-print">
-                                                        <div class="btn-group btn-group-sm">
-                                                            <a href="edit_transaction.php?id=<?php echo $transaction['id']; ?>"
-                                                                class="btn btn-outline-primary" title="Edit">
-                                                                <i class="fas fa-edit"></i>
-                                                            </a>
-                                                            <a href="delete_transaction.php?id=<?php echo $transaction['id']; ?>"
-                                                                class="btn btn-outline-danger btn-delete"
-                                                                data-item="transaction" title="Delete">
-                                                                <i class="fas fa-trash"></i>
-                                                            </a>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php endif; ?>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="incomeExpenseTrendChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <?php include 'includes/footer.php'; ?>
-    <!-- Chart.js scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.body.classList.add('loading');
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                var overlay = document.getElementById('loading-overlay');
-                overlay.classList.add('swipe-up');
-                setTimeout(function() {
-                    overlay.style.display = 'none';
-                    document.body.classList.remove('loading');
-                }, 700); // match animation duration
-            }, 5000); // 5 seconds delay
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Expense Breakdown Chart
+        const expenseCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
+        const expenseData = <?php echo json_encode($expense_chart_data, JSON_NUMERIC_CHECK); ?>;
+        const expenseLabels = Object.keys(expenseData);
+        const expenseValues = Object.values(expenseData);
+
+        const expenseChart = new Chart(expenseCtx, {
+            type: 'doughnut',
+            data: {
+                labels: expenseLabels,
+                datasets: [{
+                    data: expenseValues,
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'],
+                    hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#be2617', '#60616f'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false // We will generate a custom legend
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += new Intl.NumberFormat('en-US', {
+                                        style: 'currency',
+                                        currency: 'USD'
+                                    }).format(context.parsed);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
         });
-    </script>
+
+        // Custom Legend
+        const legendContainer = document.getElementById('chart-legend');
+        expenseChart.data.labels.forEach((label, i) => {
+            const color = expenseChart.data.datasets[0].backgroundColor[i];
+            legendContainer.innerHTML += `
+            <span class="mr-2" style="margin-right: 1rem;">
+                <i class="fas fa-circle" style="color:${color}"></i> ${label}
+            </span>
+        `;
+        });
+
+
+        // Income vs Expense Trend Chart
+        const trendCtx = document.getElementById('incomeExpenseTrendChart').getContext('2d');
+        const trendData = <?php echo json_encode($income_expense_trend); ?>;
+
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: trendData.labels,
+                datasets: [{
+                    label: "Income",
+                    lineTension: 0.3,
+                    backgroundColor: "rgba(78, 115, 223, 0.05)",
+                    borderColor: "rgba(78, 115, 223, 1)",
+                    pointRadius: 3,
+                    pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                    pointBorderColor: "rgba(78, 115, 223, 1)",
+                    pointHoverRadius: 3,
+                    pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                    pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                    data: trendData.income,
+                }, {
+                    label: "Expenses",
+                    lineTension: 0.3,
+                    backgroundColor: "rgba(231, 74, 59, 0.05)",
+                    borderColor: "rgba(231, 74, 59, 1)",
+                    pointRadius: 3,
+                    pointBackgroundColor: "rgba(231, 74, 59, 1)",
+                    pointBorderColor: "rgba(231, 74, 59, 1)",
+                    pointHoverRadius: 3,
+                    pointHoverBackgroundColor: "rgba(231, 74, 59, 1)",
+                    pointHoverBorderColor: "rgba(231, 74, 59, 1)",
+                    data: trendData.expenses,
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('en-US', {
+                                        style: 'currency',
+                                        currency: 'USD'
+                                    }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return '$' + new Intl.NumberFormat().format(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    });
+</script>
+
+<?php include 'includes/footer.php'; ?>

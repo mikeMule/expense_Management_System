@@ -1,5 +1,12 @@
 <?php
 require_once 'config/database.php';
+require_once 'classes/AssetManager.php';
+
+// Set production-ready cache control headers
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -21,10 +28,26 @@ if (session_status() === PHP_SESSION_NONE) {
     <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <!-- Custom CSS -->
-    <link href="assets/css/style.css" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link href="<?php echo AssetManager::url('assets/css/style.css'); ?>" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧮</text></svg>">
 </head>
 
 <body>
-    <div class="wrapper">
+    <!-- Center Page Notification -->
+    <div id="center-notification"></div>
+
+    <!-- Production Ready Loading Spinner -->
+    <div id="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <div class="wrapper d-flex">
+        <?php include 'includes/navbar.php'; ?>
+        <div class="main-content flex-grow-1">
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+                <div id="toastContainer" class="toast-container"></div>
+            </div>

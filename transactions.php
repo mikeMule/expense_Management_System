@@ -24,7 +24,8 @@ if ($filter_start_date && $filter_end_date) {
 } elseif ($filter_category) {
     $transactions = $transaction->getTransactionsByCategory($filter_category);
 } else {
-    $transactions = $transaction->getAllTransactions();
+    // We pass false to ensure salaries are not included by default
+    $transactions = $transaction->getAllTransactions(null, 0, false);
 }
 
 // Filter by search term if provided

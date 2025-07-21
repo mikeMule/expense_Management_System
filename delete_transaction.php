@@ -2,12 +2,14 @@
 require_once 'config/database.php';
 require_once 'classes/Auth.php';
 require_once 'classes/Transaction.php';
+require_once 'classes/Employee.php'; // Ensure Employee class is included
 
 session_start();
 $auth = new Auth();
 $auth->requireLogin();
 
 $transaction = new Transaction();
+$employee = new Employee(); // Create a new employee object
 
 // Get transaction ID
 $transaction_id = $_GET['id'] ?? 0;
@@ -30,15 +32,34 @@ if (!$transaction_data) {
 // Handle deletion confirmation
 if ($_POST && isset($_POST['confirm_delete'])) {
     try {
-        if ($transaction->deleteTransaction($transaction_id)) {
-            $_SESSION['success'] = 'Transaction deleted successfully.';
+        // Check if this is a salary transaction
+        if (strpos($transaction_data['notes'], '[salary_payment_id:') !== false) {
+            preg_match('/\[salary_payment_id:(\d+)\]/', $transaction_data['notes'], $matches);
+            $salary_payment_id = $matches[1] ?? null;
+
+            if ($salary_payment_id) {
+                // Revert the salary payment status instead of deleting the transaction
+                $employee->revertSalaryPaymentStatus($salary_payment_id);
+                // Now, delete the transaction record
+                $transaction->deleteTransaction($transaction_id);
+                $_SESSION['success'] = 'Transaction deleted and corresponding salary payment status reverted to "Pending".';
+            } else {
+                // Fallback for safety, just delete the transaction
+                $transaction->deleteTransaction($transaction_id);
+                $_SESSION['success'] = 'Transaction deleted successfully.';
+            }
         } else {
-            $_SESSION['error'] = 'Failed to delete transaction.';
+            // Standard transaction deletion
+            if ($transaction->deleteTransaction($transaction_id)) {
+                $_SESSION['success'] = 'Transaction deleted successfully.';
+            } else {
+                $_SESSION['error'] = 'Failed to delete transaction.';
+            }
         }
     } catch (Exception $e) {
         $_SESSION['error'] = 'An error occurred: ' . $e->getMessage();
     }
-    
+
     header('Location: transactions.php');
     exit();
 }
@@ -62,9 +83,9 @@ include 'includes/navbar.php';
                         <i class="fas fa-warning me-2"></i>
                         <strong>Warning!</strong> This action cannot be undone.
                     </div>
-                    
+
                     <p>Are you sure you want to delete the following transaction?</p>
-                    
+
                     <div class="card mb-3">
                         <div class="card-body">
                             <div class="row">
@@ -96,24 +117,24 @@ include 'includes/navbar.php';
                                 <div class="col-sm-8"><?php echo date('M d, Y', strtotime($transaction_data['transaction_date'])); ?></div>
                             </div>
                             <?php if ($transaction_data['category_name']): ?>
-                            <hr>
-                            <div class="row">
-                                <div class="col-sm-4"><strong>Category:</strong></div>
-                                <div class="col-sm-8">
-                                    <span class="badge bg-secondary"><?php echo htmlspecialchars($transaction_data['category_name']); ?></span>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-sm-4"><strong>Category:</strong></div>
+                                    <div class="col-sm-8">
+                                        <span class="badge bg-secondary"><?php echo htmlspecialchars($transaction_data['category_name']); ?></span>
+                                    </div>
                                 </div>
-                            </div>
                             <?php endif; ?>
                             <?php if ($transaction_data['notes']): ?>
-                            <hr>
-                            <div class="row">
-                                <div class="col-sm-4"><strong>Notes:</strong></div>
-                                <div class="col-sm-8"><?php echo htmlspecialchars($transaction_data['notes']); ?></div>
-                            </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-sm-4"><strong>Notes:</strong></div>
+                                    <div class="col-sm-8"><?php echo htmlspecialchars($transaction_data['notes']); ?></div>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
-                    
+
                     <form method="POST">
                         <div class="d-flex justify-content-between">
                             <a href="transactions.php" class="btn btn-secondary">

@@ -1,5 +1,5 @@
 </div>
-
+</div>
 <footer class="footer-react text-center py-4 mt-5">
     <div class="container">
         <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2">
@@ -52,10 +52,15 @@
     }
 </style>
 
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <!-- Bootstrap JS (Unified version 5.3.7 for all pages) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
 <!-- Custom JS -->
-<script src="assets/js/main.js"></script>
+<script src="<?php echo AssetManager::url('assets/js/main.js'); ?>"></script>
 
 <?php if (isset($additional_scripts)): ?>
     <?php echo $additional_scripts; ?>

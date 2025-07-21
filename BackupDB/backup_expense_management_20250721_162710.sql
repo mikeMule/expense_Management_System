@@ -28,7 +28,7 @@ CREATE TABLE `categories` (
   `type` enum('income','expense') NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -37,7 +37,7 @@ CREATE TABLE `categories` (
 
 LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES (3,'Other Income','income','2025-07-01 22:03:51'),(5,'Utilities','expense','2025-07-01 22:03:51'),(6,'Marketing','expense','2025-07-01 22:03:51'),(7,'Travel','expense','2025-07-01 22:03:51'),(8,'Equipment','expense','2025-07-01 22:03:51'),(9,'Maintenance','expense','2025-07-01 22:03:51'),(10,'Other Expenses','expense','2025-07-01 22:03:51');
+INSERT INTO `categories` VALUES (3,'Other Income','income','2025-07-01 22:03:51'),(5,'Utilities','expense','2025-07-01 22:03:51'),(6,'Marketing','expense','2025-07-01 22:03:51'),(7,'Travel','expense','2025-07-01 22:03:51'),(8,'Equipment','expense','2025-07-01 22:03:51'),(9,'Maintenance','expense','2025-07-01 22:03:51'),(10,'Other Expenses','expense','2025-07-01 22:03:51'),(11,'Salaries','expense','2025-07-21 13:54:41');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -62,7 +62,7 @@ CREATE TABLE `employees` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `employee_id` (`employee_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -71,7 +71,7 @@ CREATE TABLE `employees` (
 
 LOCK TABLES `employees` WRITE;
 /*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (3,'MW-487750','eiasdsad','Taye','michaeltaye012@gmail.com','+256706803585','wew',2333.00,'2025-07-16','active','2025-07-16 15:22:19'),(7,'MW-810466','eiasdsad','Taye','michaeltaye012@gmail.com','+256706803585','wew',2333.00,'2025-07-16','active','2025-07-16 15:26:17'),(8,'MW-887484','eiasdsad','Taye','michaeltaye012@gmail.com','+256706803585','wew',2333.00,'2025-07-16','active','2025-07-16 15:29:36'),(9,'MW-436743','eiasdsad','Taye','michaeltaye012@gmail.com','+256706803585','wew',2333.00,'2025-07-16','active','2025-07-16 15:31:33'),(10,'MW-582520','eiasdsad','Taye','michaeltaye012@gmail.com','+256706803585','wew',2333.00,'2025-07-16','active','2025-07-16 15:32:44'),(11,'MW-756216','eiasdsad','Taye','michaeltaye012@gmail.com','+256706803585','wew',2333.00,'2025-07-16','active','2025-07-16 15:32:59'),(13,'MW-880340','ZZZMichael','ZTaye','michaeltaye012@gmail.com','+256706803585','900',23.00,'2025-07-10','active','2025-07-16 15:47:22');
+INSERT INTO `employees` VALUES (19,'MW-915865','Michael','Taye','michaeltaye012@gmail.com','+256706803585','SE',30000.00,'2025-07-21','active','2025-07-21 13:09:02'),(20,'MW-421156','Fikerte','E','fiker@mulewave.com','09151516165','HR',45000.00,'2025-07-21','active','2025-07-21 13:11:02'),(21,'MW-806442','hi','j','hi@mulewave.com','+256706803585','Dev',4522.00,'2025-07-22','active','2025-07-21 15:32:39');
 /*!40000 ALTER TABLE `employees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -87,7 +87,7 @@ CREATE TABLE `migrations` (
   `migration_name` varchar(255) NOT NULL,
   `executed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -96,7 +96,7 @@ CREATE TABLE `migrations` (
 
 LOCK TABLES `migrations` WRITE;
 /*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-INSERT INTO `migrations` VALUES (1,'001_create_migrations_table.sql','2025-07-21 09:36:17'),(2,'002_add_attachment_path_to_transactions.sql','2025-07-21 09:36:17');
+INSERT INTO `migrations` VALUES (1,'001_create_migrations_table.sql','2025-07-21 09:36:17'),(2,'002_add_attachment_path_to_transactions.sql','2025-07-21 09:36:17'),(3,'003_update_payment_date_precision.sql','2025-07-21 13:22:46');
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -113,14 +113,14 @@ CREATE TABLE `salary_payments` (
   `month` int(11) NOT NULL,
   `year` int(11) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `payment_date` date DEFAULT NULL,
+  `payment_date` datetime(6) DEFAULT NULL,
   `status` enum('pending','paid') DEFAULT 'pending',
   `notes` text,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_employee_month_year` (`employee_id`,`month`,`year`),
   CONSTRAINT `salary_payments_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -129,6 +129,7 @@ CREATE TABLE `salary_payments` (
 
 LOCK TABLES `salary_payments` WRITE;
 /*!40000 ALTER TABLE `salary_payments` DISABLE KEYS */;
+INSERT INTO `salary_payments` VALUES (1,20,7,2025,45000.00,'2025-07-21 16:25:13.000000','paid','','2025-07-21 16:25:10'),(2,21,7,2025,4522.00,'2025-07-21 16:25:32.000000','paid','','2025-07-21 16:25:10'),(3,19,7,2025,30000.00,'2025-07-21 16:25:35.000000','paid','','2025-07-21 16:25:10');
 /*!40000 ALTER TABLE `salary_payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -153,7 +154,7 @@ CREATE TABLE `transactions` (
   PRIMARY KEY (`id`),
   KEY `category_id` (`category_id`),
   CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -162,7 +163,7 @@ CREATE TABLE `transactions` (
 
 LOCK TABLES `transactions` WRITE;
 /*!40000 ALTER TABLE `transactions` DISABLE KEYS */;
-INSERT INTO `transactions` VALUES (11,'expense',7,200.00,'Hello','2025-07-21','HI dffdgfdgdgdfgdg','2025-07-21 09:40:44','2025-07-21 09:40:44','uploads/tx_687e0b1c1cd7f1.40574178_24.png');
+INSERT INTO `transactions` VALUES (1,'expense',11,45000.00,'Salary: Fikerte E','2025-07-21','Payment for July 2025\n[salary_payment_id:1]','2025-07-21 16:25:13','2025-07-21 16:25:13',NULL),(2,'expense',11,4522.00,'Salary: hi j','2025-07-21','Payment for July 2025\n[salary_payment_id:2]','2025-07-21 16:25:32','2025-07-21 16:25:32',NULL),(3,'expense',11,30000.00,'Salary: Michael Taye','2025-07-21','Payment for July 2025\n[salary_payment_id:3]','2025-07-21 16:25:35','2025-07-21 16:25:35',NULL),(4,'income',3,4520.00,'90','2025-07-21','Mule Wave Technology - Addis Ababa ETHIOPIA','2025-07-21 16:26:02','2025-07-21 16:26:02',NULL);
 /*!40000 ALTER TABLE `transactions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -204,4 +205,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-21 12:42:11
+-- Dump completed on 2025-07-21 19:27:10

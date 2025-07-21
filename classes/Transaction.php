@@ -14,7 +14,7 @@ class Transaction
     {
         $query = 'SELECT t.*, c.name as category_name 
                   FROM transactions t 
-                  LEFT JOIN categories c ON t.category_id = c.id 
+                  LEFT JOIN categories c ON t.category_id = c.id
                   ORDER BY t.transaction_date DESC, t.created_at DESC';
 
         if ($limit !== null) {
@@ -72,6 +72,26 @@ class Transaction
         return $this->db->execute();
     }
 
+    public function getOrCreateCategory($name, $type)
+    {
+        // Check if category exists
+        $this->db->query('SELECT id FROM categories WHERE name = :name AND type = :type');
+        $this->db->bind(':name', $name);
+        $this->db->bind(':type', $type);
+        $row = $this->db->single();
+
+        if ($row) {
+            return $row['id'];
+        } else {
+            // Create category if it doesn't exist
+            $this->db->query('INSERT INTO categories (name, type) VALUES (:name, :type)');
+            $this->db->bind(':name', $name);
+            $this->db->bind(':type', $type);
+            $this->db->execute();
+            return $this->db->lastInsertId();
+        }
+    }
+
     public function deleteTransaction($id)
     {
         $this->db->query('DELETE FROM transactions WHERE id = :id');
@@ -105,11 +125,14 @@ class Transaction
 
     public function getTransactionsByCategory($category_id)
     {
-        $this->db->query('SELECT t.*, c.name as category_name 
+        $query = 'SELECT t.*, c.name as category_name 
                           FROM transactions t 
                           LEFT JOIN categories c ON t.category_id = c.id 
-                          WHERE t.category_id = :category_id 
-                          ORDER BY t.transaction_date DESC');
+                          WHERE t.category_id = :category_id';
+
+        $query .= ' ORDER BY t.transaction_date DESC';
+
+        $this->db->query($query);
         $this->db->bind(':category_id', $category_id);
         return $this->db->resultset();
     }
@@ -173,11 +196,12 @@ class Transaction
 
     public function getRecentTransactions($limit = 5)
     {
-        $this->db->query('SELECT t.*, c.name as category_name 
+        $query = 'SELECT t.*, c.name as category_name 
                           FROM transactions t 
-                          LEFT JOIN categories c ON t.category_id = c.id 
-                          ORDER BY t.created_at DESC 
-                          LIMIT :limit');
+                          LEFT JOIN categories c ON t.category_id = c.id
+                          ORDER BY t.created_at DESC LIMIT :limit';
+
+        $this->db->query($query);
         $this->db->bind(':limit', $limit);
         return $this->db->resultset();
     }
