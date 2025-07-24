@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const statusFilter = document.getElementById('statusFilter')
     if (statusFilter) {
       statusFilter.addEventListener('change', function () {
-        employeeTable.column(6).search(this.value).draw()
+        employeeTable.column(7).search(this.value).draw()
       })
     }
   }
@@ -480,6 +480,12 @@ document.addEventListener('DOMContentLoaded', function () {
       modal2025.classList.add('hide')
       setTimeout(() => {
         modal2025.style.display = 'none'
+        // Reset the form when modal is closed
+        const form = modal2025.querySelector('form')
+        if (form) {
+          form.reset()
+          form.classList.remove('was-validated')
+        }
       }, 300)
     }
   }
@@ -518,74 +524,74 @@ document.addEventListener('DOMContentLoaded', function () {
   if (addEmployeeForm) {
     addEmployeeForm.addEventListener('submit', function (e) {
       e.preventDefault()
+
+      // Check form validation
+      if (!this.checkValidity()) {
+        e.stopPropagation()
+        this.classList.add('was-validated')
+        showCenterNotification(
+          'Please fill in all required fields correctly.',
+          'danger'
+        )
+        return
+      }
+
       const formData = new FormData(this)
+
+      // Ensure email field has a value if it's empty
+      const emailInput = this.querySelector('#email')
+      if (emailInput && !emailInput.value.trim()) {
+        const firstNameInput = this.querySelector('#first_name')
+        if (firstNameInput && firstNameInput.value.trim()) {
+          const firstName = firstNameInput.value
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, '.')
+          emailInput.value = `${firstName}@mulewave.com`
+          formData.set('email', emailInput.value)
+        }
+      }
+
       const submitButton = this.querySelector('button[type="submit"]')
       const originalButtonText = submitButton.innerHTML
 
       submitButton.disabled = true
       submitButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...`
 
+      // Debug: Log form data
+      console.log('Form data being sent:', Object.fromEntries(formData))
+
       fetch('actions/add_employee.php', {
         method: 'POST',
         body: formData,
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok')
+          }
+          return response.json()
+        })
         .then((data) => {
+          console.log('Response data:', data) // Debug log
           if (data.success && data.employee) {
-            const employeeTable = $('#employeeTable').DataTable()
-
-            const statusDropdownHtml = `
-              <select class="form-select form-select-sm employee-status-select status-select-active" data-employee-id="${data.employee.id}" data-original-status="active">
-                <option value="active" selected>Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-              <div class="spinner-border spinner-border-sm text-primary ms-2 d-none" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-            `
-
-            const newRow = employeeTable.row
-              .add([
-                `<strong>${data.employee.employee_id}</strong>`,
-                `<div><strong>${data.employee.first_name} ${data.employee.last_name}</strong><br><small class="text-muted">${data.employee.email}</small></div>`,
-                `<span class="badge bg-secondary">${data.employee.position}</span>`,
-                data.employee.phone
-                  ? `<i class="fas fa-phone me-1"></i>${data.employee.phone}`
-                  : '-',
-                `<strong class="text-success">$${parseFloat(
-                  data.employee.monthly_salary
-                ).toFixed(2)}</strong>`,
-                new Date(data.employee.hire_date).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                }),
-                statusDropdownHtml,
-                `<div class="btn-group btn-group-sm">
-                <button type="button" class="btn btn-outline-info btn-view-details" data-employee-id="${data.employee.id}" title="View Details">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <a href="edit_employee.php?id=${data.employee.id}" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
-                <a href="delete_employee.php?id=${data.employee.id}" class="btn btn-outline-danger btn-delete" data-item="employee '${data.employee.first_name} ${data.employee.last_name}'" title="Delete"><i class="fas fa-trash"></i></a>
-             </div>`,
-              ])
-              .draw(false)
-              .node()
-
-            $(newRow).find('td:eq(0)').addClass('fw-bold text-primary')
-            $(newRow).addClass('align-middle')
-
-            closeModal()
-            showCornerNotification(data.message, 'success')
+            // Show success notification
+            showCenterNotification(
+              data.message || 'Employee added successfully!',
+              'success'
+            )
+            // Refresh the entire page to show updated data after a short delay
+            setTimeout(() => {
+              window.location.reload()
+            }, 1500)
           } else {
-            showCornerNotification(
+            showCenterNotification(
               data.message || 'An unexpected error occurred.',
               'danger'
             )
           }
         })
         .catch((error) => {
-          showCornerNotification('Network error. Please try again.', 'danger')
+          showCenterNotification('Network error. Please try again.', 'danger')
           console.error('Error:', error)
         })
         .finally(() => {
@@ -662,6 +668,28 @@ document.addEventListener('DOMContentLoaded', function () {
                         <h4>${employee.first_name} ${employee.last_name}</h4>
                         <p><strong>ID:</strong> ${employee.employee_id}</p>
                         <p><strong>Position:</strong> ${employee.position}</p>
+                        <p><strong>Email:</strong> ${
+                          employee.email || 'N/A'
+                        }</p>
+                        <p><strong>Phone:</strong> ${
+                          employee.phone || 'N/A'
+                        }</p>
+                        <p><strong>Monthly Salary:</strong> $${parseFloat(
+                          employee.monthly_salary
+                        ).toFixed(2)}</p>
+                        <p><strong>Hire Date:</strong> ${
+                          employee.hire_date
+                            ? new Date(employee.hire_date).toLocaleDateString()
+                            : 'N/A'
+                        }</p>
+                        <p><strong>Status:</strong> <span class="badge bg-${
+                          employee.status === 'active' ? 'success' : 'secondary'
+                        }">${employee.status}</span></p>
+                        ${
+                          employee.attachment_path
+                            ? `<p><strong>Attachment:</strong> <a href="${employee.attachment_path}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-pdf me-1"></i>View Document</a></p>`
+                            : '<p><strong>Attachment:</strong> <span class="text-muted">No attachment</span></p>'
+                        }
                         <hr>
                         <h5>Salary History</h5>
                         ${salaryHtml}

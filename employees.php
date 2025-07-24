@@ -11,6 +11,85 @@ $auth->requireLogin();
 
 $employee = new Employee();
 
+// Handle modal form submission
+if ($_POST && isset($_POST['add_employee'])) {
+    $employee_id = trim($_POST['employee_id'] ?? '');
+    $first_name = trim($_POST['first_name'] ?? '');
+    $last_name = trim($_POST['last_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $position = trim($_POST['position'] ?? '');
+    $monthly_salary = trim($_POST['monthly_salary'] ?? '');
+    $hire_date = trim($_POST['hire_date'] ?? '');
+    $attachment_path = null;
+    
+    // File upload handling
+    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+        $file = $_FILES['attachment'];
+        $allowed_types = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        $allowed_extensions = ['pdf', 'doc', 'docx'];
+        
+        // Get file extension
+        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        // Validate file type
+        if (!in_array($file['type'], $allowed_types) || !in_array($file_extension, $allowed_extensions)) {
+            $_SESSION['error'] = 'Please upload only PDF or DOC/DOCX files.';
+        } elseif ($file['size'] > 5 * 1024 * 1024) { // 5MB limit
+            $_SESSION['error'] = 'File size must be less than 5MB.';
+        } else {
+            // Create uploads directory if it doesn't exist
+            $upload_dir = 'uploads/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+            
+            // Generate unique filename
+            $filename = 'emp_' . uniqid() . '_' . time() . '.' . $file_extension;
+            $filepath = $upload_dir . $filename;
+            
+            // Move uploaded file
+            if (move_uploaded_file($file['tmp_name'], $filepath)) {
+                $attachment_path = $filepath;
+            } else {
+                $_SESSION['error'] = 'Failed to upload file. Please try again.';
+            }
+        }
+    }
+    
+    // Validation
+    if (empty($employee_id) || empty($first_name) || empty($last_name) || empty($position) || empty($monthly_salary)) {
+        $_SESSION['error'] = 'Please fill in all required fields.';
+    } elseif (!is_numeric($monthly_salary) || $monthly_salary <= 0) {
+        $_SESSION['error'] = 'Please enter a valid monthly salary greater than 0.';
+    } elseif ($hire_date && !strtotime($hire_date)) {
+        $_SESSION['error'] = 'Please enter a valid hire date.';
+    } elseif ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $_SESSION['error'] = 'Please enter a valid email address.';
+    } else {
+        // Add employee
+        try {
+            if ($employee->addEmployee($employee_id, $first_name, $last_name, $email, $phone, $position, $monthly_salary, $hire_date, $attachment_path)) {
+                $_SESSION['success'] = 'Employee added successfully!';
+                header('Location: employees.php');
+                exit();
+            } else {
+                $_SESSION['error'] = 'Failed to add employee. Employee ID may already exist.';
+            }
+        } catch (Exception $e) {
+            if (strpos($e->getMessage(), 'Duplicate') !== false) {
+                $_SESSION['error'] = 'Employee ID already exists. Please choose a different ID.';
+            } else {
+                $_SESSION['error'] = 'An error occurred: ' . $e->getMessage();
+            }
+        }
+    }
+    
+    // Redirect to refresh the page and show messages
+    header('Location: employees.php');
+    exit();
+}
+
 // Get all employees
 $employees = $employee->getAllEmployees();
 $employee_count = $employee->getEmployeeCount();
@@ -135,6 +214,7 @@ include 'includes/navbar.php';
                                                 <th>Contact</th>
                                                 <th>Monthly Salary</th>
                                                 <th>Hire Date</th>
+                                                <th>Attachment</th>
                                                 <th>Status</th>
                                                 <th class="no-print">Actions</th>
                                             </tr>
@@ -170,6 +250,18 @@ include 'includes/navbar.php';
                                                     </td>
                                                     <td>
                                                         <?php echo $emp['hire_date'] ? date('M d, Y', strtotime($emp['hire_date'])) : '-'; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php if ($emp['attachment_path']): ?>
+                                                            <a href="<?php echo htmlspecialchars($emp['attachment_path']); ?>"
+                                                                target="_blank"
+                                                                class="btn btn-sm btn-outline-primary"
+                                                                title="View Attachment">
+                                                                <i class="fas fa-file-pdf me-1"></i>View
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">-</span>
+                                                        <?php endif; ?>
                                                     </td>
                                                     <td>
                                                         <?php $status_class = $emp['status'] == 'active' ? 'status-select-active' : 'status-select-inactive'; ?>
@@ -213,7 +305,7 @@ include 'includes/navbar.php';
                                 <span class="modal2025-title"><i class="fas fa-user-plus me-2"></i>Add Employee</span>
                                 <button type="button" class="modal2025-close" id="closeAddEmployee2025Modal" aria-label="Close">&times;</button>
                             </div>
-                            <form method="POST" class="needs-validation" novalidate autocomplete="off">
+                            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate autocomplete="off">
                                 <div class="container-fluid">
                                     <div class="row g-3">
                                         <div class="col-md-6">
@@ -280,6 +372,19 @@ include 'includes/navbar.php';
                                                 <input type="text" class="form-control" id="hire_date" name="hire_date" value="<?php echo date('Y-m-d'); ?>" required placeholder="YYYY-MM-DD">
                                             </div>
                                         </div>
+                                        <div class="col-12">
+                                            <label for="attachment" class="form-label">Attachment (PDF/DOC/DOCX)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-paperclip"></i></span>
+                                                <input type="file" class="form-control" id="attachment" name="attachment"
+                                                    accept=".pdf,.doc,.docx"
+                                                    onchange="validateFile(this)">
+                                            </div>
+                                            <div class="form-text text-muted">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Maximum file size: 5MB. Supported formats: PDF, DOC, DOCX
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="modal2025-footer">
@@ -314,5 +419,33 @@ include 'includes/navbar.php';
         </div>
     </div>
 </div>
+
+<script>
+    function validateFile(input) {
+        const file = input.files[0];
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        const allowedExtensions = ['pdf', 'doc', 'docx'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+
+        if (file) {
+            // Check file size
+            if (file.size > maxSize) {
+                alert('File size must be less than 5MB.');
+                input.value = '';
+                return false;
+            }
+
+            // Check file type
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(fileExtension) || !allowedTypes.includes(file.type)) {
+                alert('Please select only PDF or DOC/DOCX files.');
+                input.value = '';
+                return false;
+            }
+        }
+
+        return true;
+    }
+</script>
 
 <?php include 'includes/footer.php'; ?>

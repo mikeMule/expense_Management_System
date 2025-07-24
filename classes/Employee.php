@@ -29,10 +29,10 @@ class Employee
         return $this->db->single();
     }
 
-    public function addEmployee($employee_id, $first_name, $last_name, $email, $phone, $position, $monthly_salary, $hire_date)
+    public function addEmployee($employee_id, $first_name, $last_name, $email, $phone, $position, $monthly_salary, $hire_date, $attachment_path = null)
     {
-        $this->db->query('INSERT INTO employees (employee_id, first_name, last_name, email, phone, position, monthly_salary, hire_date) 
-                          VALUES (:employee_id, :first_name, :last_name, :email, :phone, :position, :monthly_salary, :hire_date)');
+        $this->db->query('INSERT INTO employees (employee_id, first_name, last_name, email, phone, position, monthly_salary, hire_date, attachment_path) 
+                          VALUES (:employee_id, :first_name, :last_name, :email, :phone, :position, :monthly_salary, :hire_date, :attachment_path)');
 
         $this->db->bind(':employee_id', $employee_id);
         $this->db->bind(':first_name', $first_name);
@@ -42,16 +42,18 @@ class Employee
         $this->db->bind(':position', $position);
         $this->db->bind(':monthly_salary', $monthly_salary);
         $this->db->bind(':hire_date', $hire_date);
+        $this->db->bind(':attachment_path', $attachment_path);
 
         return $this->db->execute();
     }
 
-    public function updateEmployee($id, $employee_id, $first_name, $last_name, $email, $phone, $position, $monthly_salary, $hire_date, $status)
+    public function updateEmployee($id, $employee_id, $first_name, $last_name, $email, $phone, $position, $monthly_salary, $hire_date, $status, $attachment_path = null)
     {
         $this->db->query('UPDATE employees 
                           SET employee_id = :employee_id, first_name = :first_name, last_name = :last_name, 
                               email = :email, phone = :phone, position = :position, 
-                              monthly_salary = :monthly_salary, hire_date = :hire_date, status = :status 
+                              monthly_salary = :monthly_salary, hire_date = :hire_date, status = :status, 
+                              attachment_path = :attachment_path 
                           WHERE id = :id');
 
         $this->db->bind(':id', $id);
@@ -64,6 +66,7 @@ class Employee
         $this->db->bind(':monthly_salary', $monthly_salary);
         $this->db->bind(':hire_date', $hire_date);
         $this->db->bind(':status', $status);
+        $this->db->bind(':attachment_path', $attachment_path);
 
         return $this->db->execute();
     }
