@@ -4,7 +4,7 @@ define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'expense_management');
-define('DB_PORT', 3308); // Optional: specify port if not default 3306
+define('DB_PORT', 3306); // Optional: specify port if not default 3306
 
 require_once 'migrate.php';
 
