@@ -22,16 +22,16 @@ if ($_POST && isset($_POST['add_employee'])) {
     $monthly_salary = trim($_POST['monthly_salary'] ?? '');
     $hire_date = trim($_POST['hire_date'] ?? '');
     $attachment_path = null;
-    
+
     // File upload handling
     if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
         $file = $_FILES['attachment'];
         $allowed_types = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         $allowed_extensions = ['pdf', 'doc', 'docx'];
-        
+
         // Get file extension
         $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        
+
         // Validate file type
         if (!in_array($file['type'], $allowed_types) || !in_array($file_extension, $allowed_extensions)) {
             $_SESSION['error'] = 'Please upload only PDF or DOC/DOCX files.';
@@ -43,11 +43,11 @@ if ($_POST && isset($_POST['add_employee'])) {
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0755, true);
             }
-            
+
             // Generate unique filename
             $filename = 'emp_' . uniqid() . '_' . time() . '.' . $file_extension;
             $filepath = $upload_dir . $filename;
-            
+
             // Move uploaded file
             if (move_uploaded_file($file['tmp_name'], $filepath)) {
                 $attachment_path = $filepath;
@@ -56,7 +56,7 @@ if ($_POST && isset($_POST['add_employee'])) {
             }
         }
     }
-    
+
     // Validation
     if (empty($employee_id) || empty($first_name) || empty($last_name) || empty($position) || empty($monthly_salary)) {
         $_SESSION['error'] = 'Please fill in all required fields.';
@@ -84,7 +84,7 @@ if ($_POST && isset($_POST['add_employee'])) {
             }
         }
     }
-    
+
     // Redirect to refresh the page and show messages
     header('Location: employees.php');
     exit();
@@ -140,13 +140,13 @@ include 'includes/navbar.php';
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2><i class="fas fa-users me-2"></i>Employee List (<span class="employee-count-blinker"><?php echo count($employees); ?></span>)</h2>
-                        <?php if ($employee_count < 10): ?>
-                            <button type="button" class="btn btn-primary" id="openAddEmployee2025Modal" <?php if ($employee_count >= 10) echo 'disabled'; ?>>
+                        <?php if ($employee_count < 15): ?>
+                            <button type="button" class="btn btn-primary" id="openAddEmployee2025Modal">
                                 <i class="fas fa-user-plus me-1"></i>Add Employee
                             </button>
                         <?php else: ?>
                             <span class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>Maximum 10 employees reached
+                                <i class="fas fa-info-circle me-1"></i>Maximum 15 employees reached
                             </span>
                         <?php endif; ?>
                     </div>
