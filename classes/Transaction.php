@@ -56,9 +56,9 @@ class Transaction
 
     public function updateTransaction($id, $type, $category_id, $amount, $description, $transaction_date, $notes = '')
     {
-        $this->db->query('UPDATE transactions 
-                          SET type = :type, category_id = :category_id, amount = :amount, 
-                              description = :description, transaction_date = :transaction_date, notes = :notes 
+        $this->db->query('UPDATE transactions
+                          SET type = :type, category_id = :category_id, amount = :amount,
+                              description = :description, transaction_date = :transaction_date, notes = :notes
                           WHERE id = :id');
 
         $this->db->bind(':id', $id);
@@ -68,6 +68,26 @@ class Transaction
         $this->db->bind(':description', $description);
         $this->db->bind(':transaction_date', $transaction_date);
         $this->db->bind(':notes', $notes);
+
+        return $this->db->execute();
+    }
+
+    public function updateTransactionWithAttachment($id, $type, $category_id, $amount, $description, $transaction_date, $notes = '', $attachment_path = null)
+    {
+        $this->db->query('UPDATE transactions
+                          SET type = :type, category_id = :category_id, amount = :amount,
+                              description = :description, transaction_date = :transaction_date,
+                              notes = :notes, attachment_path = :attachment_path
+                          WHERE id = :id');
+
+        $this->db->bind(':id', $id);
+        $this->db->bind(':type', $type);
+        $this->db->bind(':category_id', $category_id);
+        $this->db->bind(':amount', $amount);
+        $this->db->bind(':description', $description);
+        $this->db->bind(':transaction_date', $transaction_date);
+        $this->db->bind(':notes', $notes);
+        $this->db->bind(':attachment_path', $attachment_path);
 
         return $this->db->execute();
     }

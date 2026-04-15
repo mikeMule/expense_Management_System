@@ -1,0 +1,36 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
+    "ANTHROPIC_AUTH_TOKEN": "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",
+    "ANTHROPIC_API_KEY": "",
+    "ANTHROPIC_MODEL": "nvidia/nemotron-3-super-120b-a12b:free"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"C:\\\\\\\\xampp\\\\\\\\htdocs\\\\\\\\expense_Management_System-v01\\\\\\\\expense_Management_System-v2\\\\\\\\uploads\")",
+      "Bash(test -f \"C:\\\\\\\\xampp\\\\\\\\htdocs\\\\\\\\expense_Management_System-v01\\\\\\\\expense_Management_System-v2\\\\\\\\uploads\\\\\\\\tx_69df41ece74d8_1776239084.jpg\")",
+      "Bash(find C:\\\\\\\\xampp\\\\\\\\htdocs\\\\\\\\expense_Management_System-v01\\\\\\\\expense_Management_System-v2\\\\\\\\uploads *)",
+      "Bash(cd \"C:\\\\\\\\xampp\\\\\\\\htdocs\\\\\\\\expense_Management_System-v01\\\\\\\\expense_Management_System-v2\")",
+      "Bash(find C:\\\\\\\\xampp\\\\\\\\htdocs\\\\\\\\expense_Management_System-v01\\\\\\\\expense_Management_System-v2 *)",
+      "Bash(php -r \"echo getcwd\\(\\);\")",
+      "Bash(ls -la uploads/tx_*)",
+      "Bash(php -r \"echo 'tx_' . date\\('YmdHis'\\) . '_' . uniqid\\(\\) . '.jpg';\")",
+      "Bash(xargs grep *)",
+      "Bash(find . -name \"*.php\" -type f -exec grep -l \"attachment_path\" {} \\\\;)",
+      "Bash(php fix_attachment_paths.php)",
+      "Bash(php fix_paths.php)",
+      "Bash(php -r ' *)",
+      "Bash(php fix_all_attachments.php)",
+      "Bash(php repair_attachments.php)",
+      "Bash(php -l actions/edit_transaction.php)",
+      "Bash(cat)",
+      "Bash(php /tmp/fix4.php)",
+      "Bash(rm *)",
+      "Bash(php -l actions/edit_transaction.php classes/Transaction.php)",
+      "Read(//tmp/**)",
+      "Bash(cat /tmp/verify_logic3.php)",
+      "Bash(php /tmp/verify.php)",
+      "Bash(grep -E 'if.*$remove|elseif.*$remove|move_uploaded|unlink')"
+    ]
+  }
+}
