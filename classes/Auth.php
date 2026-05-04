@@ -51,20 +51,18 @@ class Auth
                 return false;
             }
             $_SESSION['last_activity'] = time();
-            
+
             // Only set cookie if headers haven't been sent yet
             if (!headers_sent()) {
                 setcookie('EMS_SESSION', session_id(), time() + $timeout, '/', '', false, true);
             }
             return true;
         }
-        
-        // Try to restore session from cookie
-        if (isset($_COOKIE['EMS_SESSION']) && !headers_sent()) {
+
+        // Only try to restore session from cookie if no session is currently active
+        if (isset($_COOKIE['EMS_SESSION']) && session_status() === PHP_SESSION_NONE && !headers_sent()) {
             session_id($_COOKIE['EMS_SESSION']);
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
+            session_start();
             if (isset($_SESSION['user_id'])) {
                 $_SESSION['last_activity'] = time();
                 return true;
