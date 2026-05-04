@@ -1,202 +1,191 @@
 <?php
 require_once 'config/database.php';
 require_once 'classes/Auth.php';
+
+$auth = new Auth();
+$auth->requireLogin();
+
 require_once 'classes/Report.php';
 
 $page_title = 'Dashboard';
 include 'includes/header.php';
 
-$auth = new Auth();
-$auth->requireLogin();
-
 $report = new Report();
 $dashboardData = $report->getDashboardData();
 $expense_chart_data = $report->getExpenseBreakdownForChart();
 $income_expense_trend = $report->getIncomeExpenseTrendForChart();
-
-include 'includes/navbar.php';
 ?>
 
-<style>
-    /* Dashboard Grid Layout - Updated for 4 KPIs */
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-gap: 1.5rem;
-    }
-
-    @media (max-width: 991px) {
-        .dashboard-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 576px) {
-        .dashboard-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    /* KPI Card Style - Rebuilt to match the image */
-    .kpi-card {
-        background: #FFFFFF;
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e9ecef;
-    }
-
-    .kpi-card .card-title {
-        font-size: 0.9rem;
-        color: #6c757d;
-        margin-bottom: 0.5rem;
-    }
-
-    .kpi-card .card-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #212529;
-    }
-
-    .kpi-card .card-extra {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 1rem;
-    }
-
-    .kpi-card .card-change {
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-
-    .kpi-card .card-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-    }
-
-    .status-item .details .value {
-        font-size: 0.9rem;
-        color: #6c757d;
-    }
-
-    .status-item-clickable:hover {
-        background-color: rgba(40, 167, 69, 0.1);
-        cursor: pointer;
-        border-radius: 0.5rem;
-    }
-
-    @keyframes spin {
-        from {
-            transform: rotate(0deg);
-        }
-
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    a.kpi-card-link {
-        text-decoration: none;
-        color: inherit;
-    }
-
-    a.kpi-card-link .kpi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        border-color: #1976d2;
-    }
-</style>
-
 <div class="page-animate">
-    <div class="container-fluid py-4">
+    <div class="w-full">
         <!-- Dashboard Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="h2 mb-0">Dashboard</h1>
-                <p class="text-muted">Welcome, <?php echo $_SESSION['full_name'] ?? $_SESSION['username']; ?>!</p>
+        <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div class="relative">
+                <div class="flex items-center gap-4 mb-2">
+                    <h1 class="text-4xl font-black text-gray-900 tracking-tight m-0 flex items-center gap-3">
+                        Dashboard
+                    </h1>
+                    <span class="bg-brand text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-brand/20 uppercase tracking-tighter">Live</span>
+                </div>
+                <p class="text-gray-500 font-medium text-sm m-0">
+                    Welcome back, <span class="text-brand font-bold underline decoration-brand/30 underline-offset-4"><?php echo htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']); ?></span>. Here's your financial status.
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="reports.php" class="h-11 px-5 bg-white text-gray-700 border-3 border-gray-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-brand hover:text-brand transition-all flex items-center gap-2 shadow-sm">
+                    <i class="fas fa-chart-bar text-[10px]"></i> Reports
+                </a>
+                <a href="add_transaction.php" class="h-11 px-6 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2 shadow-xl shadow-brand/20">
+                    <i class="fas fa-plus text-[10px]"></i> New Entry
+                </a>
             </div>
         </div>
 
         <!-- Main Dashboard Grid -->
-        <div class="dashboard-grid">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <!-- KPI Cards -->
-            <a href="transactions.php?type=income" class="kpi-card-link">
-                <div class="kpi-card">
-                    <div class="card-title">This Month's Income</div>
-                    <div class="card-value">$<?php echo number_format($dashboardData['monthly_income'], 2); ?></div>
-                    <div class="card-extra">
-                        <span class="card-change text-success"><i class="fas fa-arrow-up"></i> 15%</span>
-                        <div class="card-icon" style="background-color: #e0f2f1; color: #00796b;"><i class="fas fa-dollar-sign"></i></div>
+            <a href="transactions.php?type=income" class="group block relative">
+                <div class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-emerald-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-emerald-500/10 h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Monthly Income</div>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                            <i class="fas fa-arrow-trend-up"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-black text-gray-900 amount mb-2">
+                        <?php echo CURRENCY_SYMBOL; ?> <?php echo number_format($dashboardData['monthly_income'], 2); ?>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-emerald-500">
+                        <i class="fas fa-plus"></i> 15% from last month
                     </div>
                 </div>
             </a>
-            <a href="transactions.php?type=expense" class="kpi-card-link">
-                <div class="kpi-card">
-                    <div class="card-title">This Month's Expenses</div>
-                    <div class="card-value">$<?php echo number_format($dashboardData['monthly_expenses'], 2); ?></div>
-                    <div class="card-extra">
-                        <span class="card-change text-danger"><i class="fas fa-arrow-down"></i> 5%</span>
-                        <div class="card-icon" style="background-color: #fff3e0; color: #f57c00;"><i class="fas fa-shopping-cart"></i></div>
+
+            <a href="transactions.php?type=expense" class="group block relative">
+                <div class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-rose-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-rose-500/10 h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Monthly Expenses</div>
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-lg group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                            <i class="fas fa-arrow-trend-down"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-black text-gray-900 amount mb-2">
+                        <?php echo CURRENCY_SYMBOL; ?> <?php echo number_format($dashboardData['monthly_expenses'], 2); ?>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-rose-500">
+                        <i class="fas fa-minus"></i> 5% from last month
                     </div>
                 </div>
             </a>
-            <a href="reports.php" class="kpi-card-link">
-                <div class="kpi-card">
-                    <div class="card-title">This Month's Net Balance</div>
-                    <div class="card-value <?php echo $dashboardData['monthly_balance'] >= 0 ? 'text-success' : 'text-danger'; ?>">$<?php echo number_format($dashboardData['monthly_balance'], 2); ?></div>
-                    <div class="card-extra">
-                        <span class="card-change text-success"><i class="fas fa-arrow-up"></i> 10%</span>
-                        <div class="card-icon" style="background-color: #e3f2fd; color: #1976d2;"><i class="fas fa-balance-scale"></i></div>
+
+            <a href="reports.php" class="group block relative">
+                <div class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-brand group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-brand/10 h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Net Balance</div>
+                        <div class="w-10 h-10 rounded-xl bg-brand-light text-brand flex items-center justify-center text-lg group-hover:bg-brand group-hover:text-white transition-colors">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-black amount mb-2 <?php echo $dashboardData['monthly_balance'] >= 0 ? 'text-emerald-600' : 'text-rose-600'; ?>">
+                        <?php echo CURRENCY_SYMBOL; ?> <?php echo number_format($dashboardData['monthly_balance'], 2); ?>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                        Current Month Status
                     </div>
                 </div>
             </a>
-            <a href="employees.php" class="kpi-card-link">
-                <div class="kpi-card">
-                    <div class="card-title">Active Employees</div>
-                    <div class="card-value"><?php echo $dashboardData['active_employees']; ?></div>
-                    <div class="card-extra">
-                        <span class="card-change text-muted">View</span>
-                        <div class="card-icon" style="background-color: #f3e5f5; color: #8e24aa;"><i class="fas fa-users"></i></div>
+
+            <a href="employees.php" class="group block relative">
+                <div class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-indigo-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-indigo-500/10 h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Active Personnel</div>
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-black text-gray-900 amount mb-2">
+                        <?php echo $dashboardData['active_employees']; ?>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                        Manage Staff Directory
                     </div>
                 </div>
             </a>
         </div>
 
-        <!-- Charts and Recent Activity Grid -->
-        <div class="row mt-5">
-            <div class="col-lg-8">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie me-1"></i>Expense Breakdown</h6>
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 h-full relative overflow-hidden group">
+                    <div class="flex justify-between items-center mb-8 relative z-10">
+                        <div>
+                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Financial Performance</h3>
+                            <h2 class="text-lg font-black text-gray-900">Income vs Expense Trend</h2>
+                        </div>
+                        <div class="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-brand"></span> Income</div>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Expenses</div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-pie pt-4 pb-2">
-                            <canvas id="expenseBreakdownChart"></canvas>
-                        </div>
-                        <div class="mt-4 text-center small" id="chart-legend">
-                        </div>
+                    <div class="relative h-[320px] z-10">
+                        <canvas id="incomeExpenseTrendChart"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line me-1"></i>Income vs Expense (30 Days)</h6>
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 h-full flex flex-col group">
+                    <div class="mb-8">
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Resource Allocation</h3>
+                        <h2 class="text-lg font-black text-gray-900">Expense Breakdown</h2>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="incomeExpenseTrendChart"></canvas>
-                        </div>
+                    <div class="relative flex-grow min-h-[250px]">
+                        <canvas id="expenseBreakdownChart"></canvas>
                     </div>
+                    <div id="chart-legend" class="mt-8 text-[10px] font-bold uppercase tracking-widest text-gray-500 flex flex-wrap justify-center gap-4"></div>
                 </div>
             </div>
         </div>
+
+        <!-- Recent Transactions Preview (Added for Pro feel) -->
+        <?php if (!empty($dashboardData['recent_transactions'])): ?>
+        <div class="mb-10">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-black text-gray-900 uppercase tracking-tight">Recent Activity</h2>
+                <a href="transactions.php" class="text-xs font-bold text-brand hover:underline">View All Records <i class="fas fa-arrow-right ml-1 text-[8px]"></i></a>
+            </div>
+            <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50/50 border-b border-gray-100">
+                                <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Type</th>
+                                <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Description</th>
+                                <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <?php foreach ($dashboardData['recent_transactions'] as $tx): ?>
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-8 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter <?php echo $tx['type'] == 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'; ?>">
+                                        <?php echo $tx['type']; ?>
+                                    </span>
+                                </td>
+                                <td class="px-8 py-4">
+                                    <div class="text-sm font-bold text-gray-800"><?php echo htmlspecialchars($tx['description']); ?></div>
+                                    <div class="text-[10px] text-gray-400 font-medium"><?php echo date('M d, Y', strtotime($tx['transaction_date'])); ?></div>
+                                </td>
+                                <td class="px-8 py-4 text-right font-black text-gray-900 amount">
+                                    <?php echo $tx['type'] == 'income' ? '+' : '-'; ?><?php echo CURRENCY_SYMBOL . number_format($tx['amount'], 2); ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
     </div>
 </div>
@@ -238,7 +227,7 @@ include 'includes/navbar.php';
                                 if (context.parsed !== null) {
                                     label += new Intl.NumberFormat('en-US', {
                                         style: 'currency',
-                                        currency: 'USD'
+                                        currency: 'ETB'
                                     }).format(context.parsed);
                                 }
                                 return label;
@@ -313,7 +302,7 @@ include 'includes/navbar.php';
                                 if (context.parsed.y !== null) {
                                     label += new Intl.NumberFormat('en-US', {
                                         style: 'currency',
-                                        currency: 'USD'
+                                        currency: 'ETB'
                                     }).format(context.parsed.y);
                                 }
                                 return label;
@@ -330,7 +319,7 @@ include 'includes/navbar.php';
                     y: {
                         ticks: {
                             callback: function(value, index, values) {
-                                return '$' + new Intl.NumberFormat().format(value);
+                                return '<?php echo CURRENCY_SYMBOL; ?> ' + new Intl.NumberFormat().format(value);
                             }
                         }
                     }

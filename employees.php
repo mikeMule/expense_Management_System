@@ -3,11 +3,11 @@ require_once 'config/database.php';
 require_once 'classes/Auth.php';
 require_once 'classes/Employee.php';
 
-$page_title = 'Employees';
-include 'includes/header.php';
-
 $auth = new Auth();
 $auth->requireLogin();
+
+$page_title = 'Employees';
+include 'includes/header.php';
 
 $employee = new Employee();
 
@@ -99,353 +99,409 @@ $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-include 'includes/navbar.php';
 ?>
 <style>
-    .main-info-card {
-        background: #fff;
-        border-radius: 1.25rem;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-        padding: 2.5rem 2rem;
-        margin: 2rem auto;
-        max-width: 2619px;
-    }
-
-    @media (max-width: 991px) {
-        .main-info-card {
-            padding: 1.5rem 0.7rem;
-            margin: 1.2rem 0.2rem;
-        }
-    }
-
-    @media (max-width: 600px) {
-        .main-info-card {
-            padding: 0.7rem 0.2rem;
-            margin: 0.5rem 0.1rem;
-            border-radius: 0.7rem;
-        }
-    }
-
-    /* Hide backdrop for Add Employee modal only */
-    #addEmployeeModal+.modal-backdrop,
-    #addEmployeeModal~.modal-backdrop {
+    /* Custom hidden class for tailwind modal transition */
+    .modal-hidden {
         display: none !important;
-        opacity: 0 !important;
     }
 </style>
-<div class="page-animate">
-    <div class="main-info-card">
-        <div class="container-fluid py-4">
-            <div class="row">
-                <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-users me-2"></i>Employee List (<span class="employee-count-blinker"><?php echo count($employees); ?></span>)</h2>
-                        <?php if ($employee_count < 15): ?>
-                            <button type="button" class="btn btn-primary" id="openAddEmployee2025Modal">
-                                <i class="fas fa-user-plus me-1"></i>Add Employee
-                            </button>
-                        <?php else: ?>
-                            <span class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>Maximum 15 employees reached
-                            </span>
-                        <?php endif; ?>
-                    </div>
+<div class="page-animate w-full">
+    <!-- Header Section -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative">
+            <div class="flex items-center gap-4 mb-2">
+                <h1 class="text-4xl font-black text-gray-900 tracking-tight m-0 flex items-center gap-3">
+                    Employees
+                </h1>
+                <span class="bg-brand text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-brand/20 uppercase tracking-tighter">
+                    <?php echo count($employees); ?> Active
+                </span>
+            </div>
+            <p class="text-gray-500 font-medium text-sm m-0">
+                Manage your organization's personnel, positions, and payroll structures.
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="export_employees_pdf.php" class="h-11 px-5 bg-white text-rose-600 border-3 border-gray-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-rose-500 transition-all flex items-center gap-2 shadow-sm" id="exportPdfBtn">
+                <i class="fas fa-file-pdf text-[10px]"></i> Personnel PDF
+            </a>
+            <?php if ($employee_count < 15): ?>
+                <button type="button" class="h-11 px-6 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2 shadow-xl shadow-brand/20" id="openAddEmployee2025Modal">
+                    <i class="fas fa-user-plus text-[10px]"></i> Add Personnel
+                </button>
+            <?php endif; ?>
+        </div>
+    </div>
 
-                    <?php if ($success): ?>
-                        <div class="alert alert-success alert-dismissible fade show">
-                            <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
+    <!-- Professional Filters Section -->
+    <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm mb-10 overflow-hidden">
+        <div class="p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
+                    <i class="fas fa-filter text-xs"></i>
+                </div>
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Filter Personnel</h3>
+            </div>
 
-                    <?php if ($error): ?>
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            <i class="fas fa-exclamation-triangle me-2"></i><?php echo $error; ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Filters -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
-                        </div>
-                        <div class="card-body">
-                            <form class="row g-3" id="filterForm">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="searchInput" placeholder="Search employees...">
-                                </div>
-                                <div class="col-md-3">
-                                    <select class="form-select" id="statusFilter">
-                                        <option value="">All Status</option>
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="salaries.php" class="btn btn-info w-100">
-                                        <i class="fas fa-money-check-alt me-1"></i>Manage Salaries
-                                    </a>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Employees Table -->
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Employee List</h5>
-                        </div>
-                        <div class="card-body">
-                            <?php if (empty($employees)): ?>
-                                <div class="text-center py-5 text-muted">
-                                    <i class="fas fa-user-plus fa-4x mb-3"></i>
-                                    <h4>No employees found</h4>
-                                    <p>Add your first employee to get started.</p>
-                                </div>
-                            <?php else: ?>
-                                <div class="table-responsive">
-                                    <table id="employeeTable" class="table table-hover table-bordered align-middle">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Employee ID</th>
-                                                <th>Name</th>
-                                                <th>Position</th>
-                                                <th>Contact</th>
-                                                <th>Monthly Salary</th>
-                                                <th>Hire Date</th>
-                                                <th>Attachment</th>
-                                                <th>Status</th>
-                                                <th class="no-print">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($employees as $emp): ?>
-                                                <tr data-status="<?php echo $emp['status']; ?>">
-                                                    <td>
-                                                        <strong><?php echo htmlspecialchars($emp['employee_id']); ?></strong>
-                                                    </td>
-                                                    <td>
-                                                        <div>
-                                                            <strong><?php echo htmlspecialchars($emp['first_name'] . ' ' . $emp['last_name']); ?></strong>
-                                                            <?php if ($emp['email']): ?>
-                                                                <br><small class="text-muted"><?php echo htmlspecialchars($emp['email']); ?></small>
-                                                            <?php endif; ?>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-secondary">
-                                                            <?php echo htmlspecialchars($emp['position']); ?>
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <?php if ($emp['phone']): ?>
-                                                            <i class="fas fa-phone me-1"></i><?php echo htmlspecialchars($emp['phone']); ?>
-                                                        <?php else: ?>
-                                                            <span class="text-muted">-</span>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                    <td>
-                                                        <strong class="text-success">$<?php echo number_format($emp['monthly_salary'], 2); ?></strong>
-                                                    </td>
-                                                    <td>
-                                                        <?php echo $emp['hire_date'] ? date('M d, Y', strtotime($emp['hire_date'])) : '-'; ?>
-                                                    </td>
-                                                    <td>
-                                                        <?php if ($emp['attachment_path']): ?>
-                                                            <a href="<?php echo htmlspecialchars($emp['attachment_path']); ?>"
-                                                                target="_blank"
-                                                                class="btn btn-sm btn-outline-primary"
-                                                                title="View Attachment">
-                                                                <i class="fas fa-file-pdf me-1"></i>View
-                                                            </a>
-                                                        <?php else: ?>
-                                                            <span class="text-muted">-</span>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                    <td>
-                                                        <?php $status_class = $emp['status'] == 'active' ? 'status-select-active' : 'status-select-inactive'; ?>
-                                                        <select class="form-select form-select-sm employee-status-select <?php echo $status_class; ?>" data-employee-id="<?php echo $emp['id']; ?>" data-original-status="<?php echo $emp['status']; ?>">
-                                                            <option value="active" <?php echo $emp['status'] == 'active' ? 'selected' : ''; ?>>Active</option>
-                                                            <option value="inactive" <?php echo $emp['status'] == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
-                                                        </select>
-                                                        <div class="spinner-border spinner-border-sm text-primary ms-2 d-none" role="status">
-                                                            <span class="visually-hidden">Loading...</span>
-                                                        </div>
-                                                    </td>
-                                                    <td class="no-print">
-                                                        <div class="btn-group btn-group-sm">
-                                                            <button type="button" class="btn btn-outline-info btn-view-details" data-employee-id="<?php echo $emp['id']; ?>" title="View Details">
-                                                                <i class="fas fa-eye"></i>
-                                                            </button>
-                                                            <a href="edit_employee.php?id=<?php echo $emp['id']; ?>"
-                                                                class="btn btn-outline-primary" title="Edit">
-                                                                <i class="fas fa-edit"></i>
-                                                            </a>
-                                                            <a href="delete_employee.php?id=<?php echo $emp['id']; ?>"
-                                                                class="btn btn-outline-danger btn-delete"
-                                                                data-item="employee '<?php echo htmlspecialchars($emp['first_name'] . ' ' . $emp['last_name']); ?>'" title="Delete">
-                                                                <i class="fas fa-trash"></i>
-                                                            </a>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- Add Employee Modal (2025Modal) -->
-                    <div class="modal2025-overlay hide" id="addEmployee2025Modal">
-                        <div class="modal2025-content">
-                            <div class="modal2025-header">
-                                <span class="modal2025-title"><i class="fas fa-user-plus me-2"></i>Add Employee</span>
-                                <button type="button" class="modal2025-close" id="closeAddEmployee2025Modal" aria-label="Close">&times;</button>
-                            </div>
-                            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate autocomplete="off">
-                                <div class="container-fluid">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label for="employee_id" class="form-label">Employee ID</label>
-                                            <?php $modal_employee_id = 'MW-' . random_int(100000, 999999); ?>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
-                                                <input type="text" class="form-control" id="employee_id_display" value="<?php echo $modal_employee_id; ?>" disabled placeholder="Auto-generated">
-                                                <input type="hidden" name="employee_id" id="employee_id" value="<?php echo $modal_employee_id; ?>">
-                                            </div>
-                                            <div class="form-text text-muted">Employee ID is generated automatically.</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="first_name" class="form-label">First Name</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                                <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Enter first name">
-                                            </div>
-                                            <div class="invalid-feedback">First name is required.</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="last_name" class="form-label">Last Name</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                                <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Enter last name">
-                                            </div>
-                                            <div class="invalid-feedback">Last name is required.</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="position" class="form-label">Position</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                                <input type="text" class="form-control" id="position" name="position" required placeholder="e.g. Accountant, Manager">
-                                            </div>
-                                            <div class="invalid-feedback">Position is required.</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="email" class="form-label">Email</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                                <input type="email" class="form-control" id="email" name="email" required placeholder="example@email.com">
-                                            </div>
-                                            <div class="invalid-feedback">Email is required.</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="phone" class="form-label">Phone</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                                <input type="text" class="form-control" id="phone" name="phone" placeholder="Optional: +1 234 567 8900">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="monthly_salary" class="form-label">Monthly Salary</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
-                                                <input type="number" step="0.01" class="form-control" id="monthly_salary" name="monthly_salary" required placeholder="e.g. 5000">
-                                            </div>
-                                            <div class="invalid-feedback">Monthly salary is required.</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="hire_date" class="form-label">Hire Date</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                                <input type="text" class="form-control" id="hire_date" name="hire_date" value="<?php echo date('Y-m-d'); ?>" required placeholder="YYYY-MM-DD">
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <label for="attachment" class="form-label">Attachment (PDF/DOC/DOCX)</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-paperclip"></i></span>
-                                                <input type="file" class="form-control" id="attachment" name="attachment"
-                                                    accept=".pdf,.doc,.docx"
-                                                    onchange="validateFile(this)">
-                                            </div>
-                                            <div class="form-text text-muted">
-                                                <i class="fas fa-info-circle me-1"></i>
-                                                Maximum file size: 5MB. Supported formats: PDF, DOC, DOCX
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal2025-footer">
-                                    <button type="button" class="btn btn-secondary" id="closeAddEmployee2025ModalFooter">Cancel</button>
-                                    <button type="submit" name="add_employee" class="btn btn-success"><i class="fas fa-plus me-1"></i>Add Employee</button>
-                                </div>
-                            </form>
-                        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                <div class="lg:col-span-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Search Directory</label>
+                    <div class="relative group">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs group-focus-within:text-brand transition-colors"></i>
+                        <input type="text" id="searchInput" placeholder="Search name, ID, or position..." 
+                               class="w-full h-12 pl-12 pr-4 bg-gray-50 border-3 border-gray-50 rounded-2xl text-sm font-bold text-gray-800 focus:bg-white focus:border-brand focus:ring-0 transition-all outline-none placeholder:text-gray-400 placeholder:font-medium">
                     </div>
                 </div>
+
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Employment Status</label>
+                    <div class="relative group">
+                        <i class="fas fa-user-tag absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs group-focus-within:text-brand transition-colors"></i>
+                        <select id="statusFilter" class="w-full h-12 pl-12 pr-10 bg-gray-50 border-3 border-gray-50 rounded-2xl text-sm font-bold text-gray-800 focus:bg-white focus:border-brand focus:ring-0 transition-all outline-none appearance-none cursor-pointer">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active Employees</option>
+                            <option value="inactive">Inactive / Past</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <a href="salaries.php" class="flex-1 h-12 flex items-center justify-center gap-2 bg-indigo-50 text-indigo-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all border-3 border-transparent shadow-sm">
+                        <i class="fas fa-money-check-alt"></i> Salaries
+                    </a>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Desktop View: Professional Table -->
+    <div class="hidden md:block bg-white rounded-3xl border-3 border-gray-100 shadow-sm overflow-hidden mb-10">
+        <div class="overflow-x-auto">
+            <table id="employeeTable" class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100">
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Employee</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Position</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Monthly Salary</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    <?php if (empty($employees)): ?>
+                    <tr>
+                        <td colspan="4" class="px-8 py-20 text-center">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200">
+                                <i class="fas fa-users text-gray-300"></i>
+                            </div>
+                            <h3 class="text-gray-400 font-bold text-sm">No employees found in the directory.</h3>
+                        </td>
+                    </tr>
+                    <?php else: ?>
+                    <?php foreach ($employees as $emp): ?>
+                    <tr class="hover:bg-gray-50/50 transition-all duration-200 group border-l-4 border-l-transparent hover:border-l-brand" data-status="<?php echo $emp['status']; ?>">
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center font-black text-sm border-2 border-brand/5 shadow-inner">
+                                    <?php echo substr(htmlspecialchars($emp['first_name']), 0, 1) . substr(htmlspecialchars($emp['last_name']), 0, 1); ?>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-black text-gray-900 mb-0.5"><?php echo htmlspecialchars($emp['first_name'] . ' ' . $emp['last_name']); ?></div>
+                                    <div class="text-[10px] font-bold text-gray-400 flex items-center gap-2">
+                                        <span class="text-brand"><?php echo htmlspecialchars($emp['employee_id']); ?></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-200"></span>
+                                        <span><?php echo htmlspecialchars($emp['email'] ?: 'No Email'); ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                <?php echo htmlspecialchars($emp['position']); ?>
+                            </span>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <div class="text-sm font-black text-gray-900 amount">
+                                <?php echo CURRENCY_SYMBOL . number_format($emp['monthly_salary'], 2); ?>
+                            </div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                                Hired: <?php echo $emp['hire_date'] ? date('M d, Y', strtotime($emp['hire_date'])) : '-'; ?>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-center justify-center gap-2">
+                                <button type="button" class="h-9 w-9 rounded-xl bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-brand hover:text-white transition-all border border-gray-100 shadow-sm btn-view-details" data-employee-id="<?php echo $emp['id']; ?>">
+                                    <i class="fas fa-eye text-[10px]"></i>
+                                </button>
+                                <a href="edit_employee.php?id=<?php echo $emp['id']; ?>" class="h-9 w-9 rounded-xl bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all border border-gray-100 shadow-sm">
+                                    <i class="fas fa-edit text-[10px]"></i>
+                                </a>
+                                <button onclick="if(confirm('Delete employee?')) window.location.href='delete_employee.php?id=<?php echo $emp['id']; ?>';" class="h-9 w-9 rounded-xl bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all border border-gray-100 shadow-sm">
+                                    <i class="fas fa-trash-alt text-[10px]"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mobile View: Hybrid Cards -->
+    <div class="md:hidden space-y-4 mb-10">
+        <?php foreach ($employees as $emp): ?>
+        <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-6 group relative overflow-hidden" data-status="<?php echo $emp['status']; ?>">
+            <!-- Status Accent -->
+            <div class="absolute top-0 left-0 w-2 h-full <?php echo $emp['status'] == 'active' ? 'bg-emerald-500' : 'bg-gray-300'; ?>"></div>
+            
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-brand/10 text-brand flex items-center justify-center font-black text-lg border-2 border-brand/5 shadow-inner">
+                        <?php echo substr(htmlspecialchars($emp['first_name']), 0, 1) . substr(htmlspecialchars($emp['last_name']), 0, 1); ?>
+                    </div>
+                    <div>
+                        <div class="text-base font-black text-gray-900"><?php echo htmlspecialchars($emp['first_name'] . ' ' . $emp['last_name']); ?></div>
+                        <div class="text-[11px] font-bold text-brand uppercase tracking-widest"><?php echo htmlspecialchars($emp['employee_id']); ?></div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-base font-black text-gray-900 amount"><?php echo CURRENCY_SYMBOL . number_format($emp['monthly_salary'], 2); ?></div>
+                    <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Monthly</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
+                    <div class="text-[9px] font-black text-gray-400 uppercase mb-1">Position</div>
+                    <div class="text-[11px] font-bold text-indigo-600"><?php echo htmlspecialchars($emp['position']); ?></div>
+                </div>
+                <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
+                    <div class="text-[9px] font-black text-gray-400 uppercase mb-1">Status</div>
+                    <div class="text-[11px] font-bold <?php echo $emp['status'] == 'active' ? 'text-emerald-600' : 'text-gray-500'; ?> capitalize"><?php echo $emp['status']; ?></div>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button class="flex-1 h-11 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 btn-view-details" data-employee-id="<?php echo $emp['id']; ?>">
+                    <i class="fas fa-eye"></i> Details
+                </button>
+                <a href="edit_employee.php?id=<?php echo $emp['id']; ?>" class="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <button onclick="if(confirm('Delete?')) window.location.href='delete_employee.php?id=<?php echo $emp['id']; ?>';" class="w-11 h-11 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center border border-rose-100">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Add Employee Modal (Tailwind version) -->
+    <div id="addEmployee2025Modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" id="addEmployeeModalBackdrop"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative z-10 mx-4" id="addEmployeeModalContent">
+            <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50 sticky top-0 z-20">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center m-0">
+                    <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center mr-3">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    Add Employee
+                </h3>
+                <button type="button" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors" id="closeAddEmployee2025Modal">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <form method="POST" enctype="multipart/form-data" novalidate autocomplete="off" class="p-6 md:p-8 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="employee_id" class="block text-sm font-medium text-gray-700 mb-2">Employee ID</label>
+                        <?php $modal_employee_id = 'MW-' . random_int(100000, 999999); ?>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-id-badge text-gray-400"></i>
+                            </div>
+                            <input type="text" class="input-premium w-full pl-10 bg-gray-50 text-gray-500 border-gray-200" id="employee_id_display" value="<?php echo $modal_employee_id; ?>" disabled>
+                            <input type="hidden" name="employee_id" id="employee_id" value="<?php echo $modal_employee_id; ?>">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Employee ID is generated automatically.</p>
+                    </div>
+
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            <input type="text" class="input-premium w-full pl-10" id="first_name" name="first_name" required placeholder="Enter first name">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            <input type="text" class="input-premium w-full pl-10" id="last_name" name="last_name" required placeholder="Enter last name">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="position" class="block text-sm font-medium text-gray-700 mb-2">Position *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-briefcase text-gray-400"></i>
+                            </div>
+                            <input type="text" class="input-premium w-full pl-10" id="position" name="position" required placeholder="e.g. Accountant, Manager">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input type="email" class="input-premium w-full pl-10" id="email" name="email" required placeholder="example@email.com">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-phone text-gray-400"></i>
+                            </div>
+                            <input type="text" class="input-premium w-full pl-10" id="phone" name="phone" placeholder="+1 234 567 8900">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="monthly_salary" class="block text-sm font-medium text-gray-700 mb-2">Monthly Salary *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-dollar-sign text-gray-400"></i>
+                            </div>
+                            <input type="number" step="0.01" class="input-premium w-full pl-10" id="monthly_salary" name="monthly_salary" required placeholder="5000">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="hire_date" class="block text-sm font-medium text-gray-700 mb-2">Hire Date *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-calendar-alt text-gray-400"></i>
+                            </div>
+                            <input type="date" class="input-premium w-full pl-10" id="hire_date" name="hire_date" value="<?php echo date('Y-m-d'); ?>" required>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="attachment" class="block text-sm font-medium text-gray-700 mb-2">Attachment (PDF/DOC/DOCX)</label>
+                        <div class="relative border-2 border-dashed border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-center mb-2">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400"></i>
+                            </div>
+                            <input type="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 transition-colors cursor-pointer" id="attachment" name="attachment" accept=".pdf,.doc,.docx" onchange="validateFile(this)">
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500 flex items-center">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Max size: 5MB. Supported: PDF, DOC, DOCX.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-100 mt-8">
+                    <button type="button" class="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors" id="closeAddEmployee2025ModalFooter">
+                        Cancel
+                    </button>
+                    <button type="submit" name="add_employee" class="px-6 py-2.5 bg-brand text-white font-medium rounded-xl hover:bg-brand-dark transition-colors flex items-center shadow-md">
+                        <i class="fas fa-save mr-2"></i>Save Employee
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <!-- Employee Details Modal -->
-<div class="modal fade" id="employeeDetailsModal" tabindex="-1" aria-labelledby="employeeDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="employeeDetailsModalLabel">Employee Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="employeeDetailsContent">
-                    <!-- Details will be loaded here -->
+<div class="fixed inset-0 z-50 flex items-center justify-center hidden" id="employeeDetailsModal">
+    <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" id="employeeDetailsModalBackdrop"></div>
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 mx-4">
+        <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+            <h5 class="text-xl font-bold text-gray-800 flex items-center m-0" id="employeeDetailsModalLabel">
+                <i class="fas fa-id-card text-brand mr-3"></i>Employee Details
+            </h5>
+            <button type="button" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors" id="closeEmployeeDetailsModal">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+        <div class="p-6">
+            <div id="employeeDetailsContent" class="space-y-4">
+                <!-- Details will be loaded here via AJAX -->
+                <div class="flex justify-center py-8">
+                    <div class="spinner-border text-brand" role="status"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+        </div>
+        <div class="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+            <button type="button" class="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors" id="closeEmployeeDetailsModalFooter">Close</button>
         </div>
     </div>
 </div>
 
+<?php
+$additional_scripts = '
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("searchInput");
+        const statusFilter = document.getElementById("statusFilter");
+        const exportBtn = document.getElementById("exportPdfBtn");
+
+        function updateExportLink() {
+            const search = searchInput.value;
+            const status = statusFilter.value;
+            exportBtn.href = `export_employees_pdf.php?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`;
+        }
+
+        if (searchInput && statusFilter && exportBtn) {
+            searchInput.addEventListener("keyup", updateExportLink);
+            statusFilter.addEventListener("change", updateExportLink);
+            // Initialize link
+            updateExportLink();
+        }
+    });
+
     function validateFile(input) {
         const file = input.files[0];
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        const allowedExtensions = ['pdf', 'doc', 'docx'];
+        const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+        const allowedExtensions = ["pdf", "doc", "docx"];
         const maxSize = 5 * 1024 * 1024; // 5MB
 
         if (file) {
-            // Check file size
             if (file.size > maxSize) {
-                alert('File size must be less than 5MB.');
-                input.value = '';
+                alert("File size must be less than 5MB.");
+                input.value = "";
                 return false;
             }
-
-            // Check file type
-            const fileExtension = file.name.split('.').pop().toLowerCase();
+            const fileExtension = file.name.split(".").pop().toLowerCase();
             if (!allowedExtensions.includes(fileExtension) || !allowedTypes.includes(file.type)) {
-                alert('Please select only PDF or DOC/DOCX files.');
-                input.value = '';
+                alert("Please select only PDF or DOC/DOCX files.");
+                input.value = "";
                 return false;
             }
         }
-
         return true;
     }
 </script>
+';
+?>
 
 <?php include 'includes/footer.php'; ?>

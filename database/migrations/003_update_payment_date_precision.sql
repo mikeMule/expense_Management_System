@@ -1,1 +1,0 @@
-﻿ALTER TABLE salary_payments MODIFY COLUMN payment_date DATETIME(6);

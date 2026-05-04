@@ -8,15 +8,23 @@ class Auth
     public function __construct()
     {
         $this->db = new Database;
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
     }
 
     public function login($username, $password)
     {
-        // Plain login: only allow admin:admin
-        if ($username === 'admin' && $password === 'admin') {
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'admin';
-            $_SESSION['full_name'] = 'Administrator';
+        $this->db->query('SELECT * FROM users WHERE username = :username');
+        $this->db->bind(':username', $username);
+        $user = $this->db->single();
+
+        if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['full_name'] = $user['full_name'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['location'] = $user['location'];
             $_SESSION['last_activity'] = time();
             return true;
         }
@@ -25,6 +33,9 @@ class Auth
 
     public function logout()
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         session_unset();
         session_destroy();
         return true;
@@ -32,7 +43,6 @@ class Auth
 
     public function isLoggedIn()
     {
-        // Save session data in a secure cookie for persistent login
         if (isset($_SESSION['user_id']) && isset($_SESSION['last_activity'])) {
             // 5 minutes timeout
             $timeout = 300;
@@ -41,12 +51,16 @@ class Auth
                 return false;
             }
             $_SESSION['last_activity'] = time();
-            // Save session to cookie
-            setcookie('EMS_SESSION', session_id(), time() + $timeout, '/', '', false, true);
+            
+            // Only set cookie if headers haven't been sent yet
+            if (!headers_sent()) {
+                setcookie('EMS_SESSION', session_id(), time() + $timeout, '/', '', false, true);
+            }
             return true;
         }
+        
         // Try to restore session from cookie
-        if (isset($_COOKIE['EMS_SESSION'])) {
+        if (isset($_COOKIE['EMS_SESSION']) && !headers_sent()) {
             session_id($_COOKIE['EMS_SESSION']);
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();

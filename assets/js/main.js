@@ -9,24 +9,50 @@ document.addEventListener('DOMContentLoaded', function () {
         spinner.style.display = 'none'
       }, 300) // Match this with CSS transition time
     })
+    // Sidebar Toggle for Mobile (Tailwind Implementation)
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+    if (sidebarToggle && sidebar && sidebarOverlay) {
+        const toggleSidebar = () => {
+            const isOpen = sidebar.classList.contains('left-0') && !sidebar.classList.contains('left-[-260px]');
+            
+            if (isOpen) {
+                // Close
+                sidebar.classList.replace('left-0', 'left-[-260px]');
+                sidebarOverlay.classList.add('opacity-0');
+                setTimeout(() => sidebarOverlay.classList.add('hidden'), 300);
+                toggleIcon.classList.replace('fa-times', 'fa-bars');
+            } else {
+                // Open
+                sidebar.classList.replace('left-[-260px]', 'left-0');
+                sidebarOverlay.classList.remove('hidden');
+                setTimeout(() => sidebarOverlay.classList.remove('opacity-0'), 10);
+                toggleIcon.classList.replace('fa-bars', 'fa-times');
+            }
+        };
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+        
+        // Close sidebar when a link is clicked on mobile
+        const sidebarLinks = document.querySelectorAll('.sidebar a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 1024) { // lg breakpoint in Tailwind
+                    toggleSidebar();
+                }
+            });
+        });
+    }
   }
 })
 ;(function () {
-  // Tooltips
-  var tooltipTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="tooltip"]')
-  )
-  tooltipTriggerList.forEach(function (el) {
-    new bootstrap.Tooltip(el)
-  })
-
-  // Popovers
-  var popoverTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="popover"]')
-  )
-  popoverTriggerList.forEach(function (el) {
-    new bootstrap.Popover(el)
-  })
+  // Tailwind does not have built-in tooltips/popovers.
+  // For basic tooltips, we can rely on standard 'title' attributes or build custom JS,
+  // but for this migration, we'll remove the Bootstrap JS initializers.
 
   // Form validation
   var forms = document.querySelectorAll('.needs-validation')
@@ -40,12 +66,12 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   })
 
-  // Auto-hide alerts
-  var alerts = document.querySelectorAll('.alert:not(.alert-permanent)')
+  // Auto-hide alerts (custom Tailwind implementation)
+  var alerts = document.querySelectorAll('.alert-auto-dismiss')
   alerts.forEach(function (alert) {
     setTimeout(function () {
-      var bsAlert = new bootstrap.Alert(alert)
-      bsAlert.close()
+      alert.style.opacity = '0';
+      setTimeout(() => alert.remove(), 300);
     }, 5000)
   })
 
@@ -59,17 +85,20 @@ document.addEventListener('DOMContentLoaded', function () {
   })
 
   // Search box for tables
-  var searchInput = document.getElementById('searchInput')
-  if (searchInput) {
-    searchInput.addEventListener('keyup', function () {
-      var searchTerm = this.value.toLowerCase()
-      var tableRows = document.querySelectorAll('tbody tr')
-      tableRows.forEach(function (row) {
-        var text = row.textContent.toLowerCase()
-        row.style.display = text.includes(searchTerm) ? '' : 'none'
-      })
-    })
-  }
+  var searchInputs = [document.getElementById('searchInput'), document.getElementById('salaryTableSearch'), document.getElementById('employeeSearchInput')]
+  searchInputs.forEach(function(searchInput) {
+      if (searchInput) {
+        searchInput.addEventListener('keyup', function () {
+          var searchTerm = this.value.toLowerCase()
+          // Find the closest table body. For a global search, search all tbodys.
+          var tableRows = document.querySelectorAll('tbody tr')
+          tableRows.forEach(function (row) {
+            var text = row.textContent.toLowerCase()
+            row.style.display = text.includes(searchTerm) ? '' : 'none'
+          })
+        })
+      }
+  });
 
   // Date range picker
   var dateFilterForm = document.getElementById('dateFilterForm')
@@ -105,43 +134,28 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   })
 
-  // Profile Modal (custom)
-  var profileBtn = document.getElementById('userProfileModalBtn')
-  var customModal = document.getElementById('userProfileModalCustom')
-  var closeBtn = document.getElementById('closeProfileModalCustom')
-  if (profileBtn && customModal) {
-    profileBtn.addEventListener('click', function (e) {
-      e.preventDefault()
-      customModal.style.display = 'flex'
-      document.body.classList.add('modal-open')
-    })
-  }
-  if (closeBtn && customModal) {
-    closeBtn.addEventListener('click', function () {
-      customModal.style.display = 'none'
-      document.body.classList.remove('modal-open')
-    })
-  }
-  if (customModal) {
-    customModal.addEventListener('click', function (e) {
-      if (e.target === customModal) {
-        customModal.style.display = 'none'
-        document.body.classList.remove('modal-open')
+  // Modal Handlers (Generic)
+  window.openModal = function(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+          modal.classList.remove('hidden');
+          setTimeout(() => {
+              modal.querySelector('.bg-white')?.classList.remove('scale-95', 'opacity-0');
+              modal.querySelector('.fixed.inset-0.bg-gray-900\\/50')?.classList.remove('opacity-0');
+          }, 10);
       }
-    })
-  }
+  };
 
-  // Fallback: Ensure Bootstrap dropdowns are initialized if JS loads after DOM
-  if (window.bootstrap) {
-    document
-      .querySelectorAll('.dropdown-toggle')
-      .forEach(function (dropdownToggleEl) {
-        if (!dropdownToggleEl.hasAttribute('data-bs-toggle-initialized')) {
-          new bootstrap.Dropdown(dropdownToggleEl)
-          dropdownToggleEl.setAttribute('data-bs-toggle-initialized', 'true')
-        }
-      })
-  }
+  window.closeModal = function(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+          modal.querySelector('.bg-white')?.classList.add('scale-95', 'opacity-0');
+          modal.querySelector('.fixed.inset-0.bg-gray-900\\/50')?.classList.add('opacity-0');
+          setTimeout(() => {
+              modal.classList.add('hidden');
+          }, 300); // match transition duration
+      }
+  };
 })()
 
 // Utility functions
@@ -315,42 +329,36 @@ function showLoading(element) {
 // Show error message
 function showError(message, container = null) {
   const alert = document.createElement('div')
-  alert.className = 'alert alert-danger alert-dismissible fade show'
+  alert.className = 'bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-r-xl flex items-center alert-auto-dismiss transition-opacity duration-300'
   alert.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
+        <p class="text-red-700 text-sm font-medium flex-grow">${message}</p>
+        <button type="button" class="text-red-400 hover:text-red-600 focus:outline-none" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
     `
-
   if (container) {
     container.insertBefore(alert, container.firstChild)
   } else {
-    document
-      .querySelector('.container, .container-fluid')
-      .insertBefore(
-        alert,
-        document.querySelector('.container, .container-fluid').firstChild
-      )
+    document.querySelector('.main-content').insertBefore(alert, document.querySelector('.main-content').firstChild)
   }
 }
 
 // Show success message
 function showSuccess(message, container = null) {
   const alert = document.createElement('div')
-  alert.className = 'alert alert-success alert-dismissible fade show'
+  alert.className = 'bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-r-xl flex items-center alert-auto-dismiss transition-opacity duration-300'
   alert.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <i class="fas fa-check-circle text-green-500 mr-3"></i>
+        <p class="text-green-700 text-sm font-medium flex-grow">${message}</p>
+        <button type="button" class="text-green-400 hover:text-green-600 focus:outline-none" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
     `
-
   if (container) {
     container.insertBefore(alert, container.firstChild)
   } else {
-    document
-      .querySelector('.container, .container-fluid')
-      .insertBefore(
-        alert,
-        document.querySelector('.container, .container-fluid').firstChild
-      )
+    document.querySelector('.main-content').insertBefore(alert, document.querySelector('.main-content').firstChild)
   }
 }
 
@@ -359,51 +367,54 @@ function showCornerNotification(message, type = 'success') {
   if (!toastContainer) return
 
   const toastId = 'toast-' + Date.now()
-  const toastIcon =
-    type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'
-  const toastHeaderClass =
-    type === 'success' ? 'bg-success text-white' : 'bg-danger text-white'
+  const toastIcon = type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-triangle text-red-500'
+  const bgColor = type === 'success' ? 'bg-white border-green-500' : 'bg-white border-red-500'
+  const textColor = 'text-gray-800'
 
   const toastHTML = `
-        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
-            <div class="toast-header ${toastHeaderClass}">
-                <i class="fas ${toastIcon} me-2"></i>
-                <strong class="me-auto">${
-                  type === 'success' ? 'Success' : 'Error'
-                }</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        <div id="${toastId}" class="flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow border-l-4 ${bgColor} transition-opacity duration-300 opacity-0 transform translate-x-full" role="alert">
+            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg bg-gray-100">
+                <i class="fas ${toastIcon}"></i>
             </div>
-            <div class="toast-body">
-                ${message}
-            </div>
+            <div class="ml-3 text-sm font-normal text-gray-800">${message}</div>
+            <button type="button" class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8" onclick="document.getElementById('${toastId}').remove()" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     `
 
   toastContainer.insertAdjacentHTML('beforeend', toastHTML)
   const toastElement = document.getElementById(toastId)
-  const toast = new bootstrap.Toast(toastElement)
-  toast.show()
+  
+  // Trigger animation
+  setTimeout(() => {
+      toastElement.classList.remove('opacity-0', 'translate-x-full');
+  }, 10);
 
-  toastElement.addEventListener('hidden.bs.toast', () => {
-    toastElement.remove()
-  })
+  // Auto remove
+  setTimeout(() => {
+      toastElement.classList.add('opacity-0');
+      setTimeout(() => toastElement.remove(), 300);
+  }, 5000)
 }
 
 function showCenterNotification(message, type = 'success') {
   const notification = document.getElementById('center-notification')
   if (!notification) return
 
-  const icon =
-    type === 'success'
-      ? '<i class="fas fa-check-circle text-success"></i>'
-      : '<i class="fas fa-exclamation-triangle text-danger"></i>'
+  const icon = type === 'success' ? '<i class="fas fa-check-circle text-green-500 text-3xl"></i>' : '<i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>'
 
-  notification.innerHTML = `<div class="icon">${icon}</div><div>${message}</div>`
-  notification.classList.add('show')
+  notification.className = 'fixed top-[10%] left-1/2 transform -translate-x-1/2 z-[10000] bg-white rounded-2xl shadow-2xl p-6 flex items-center gap-4 border border-gray-100 transition-all duration-300 opacity-0 -translate-y-4';
+  notification.innerHTML = `<div>${icon}</div><div class="text-lg font-semibold text-gray-800">${message}</div>`
+  
+  // Trigger animation
+  setTimeout(() => {
+      notification.classList.remove('opacity-0', '-translate-y-4');
+  }, 10);
 
   setTimeout(() => {
-    notification.classList.remove('show')
-  }, 3000) // Notification will be visible for 3 seconds
+    notification.classList.add('opacity-0', '-translate-y-4');
+  }, 3000)
 }
 
 // Employee Page Logic
@@ -455,10 +466,122 @@ document.addEventListener('DOMContentLoaded', function () {
     const statusFilter = document.getElementById('statusFilter')
     if (statusFilter) {
       statusFilter.addEventListener('change', function () {
-        employeeTable.column(7).search(this.value).draw()
+        employeeTable.column(6).search(this.value).draw()
       })
     }
   }
+
+    // Initialize DataTables for transaction table
+    if (document.getElementById('transactionTable')) {
+        const transactionTable = $('#transactionTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[0, 'desc']], // Sort by Date descending by default
+            language: {
+                search: "<i class='fas fa-search'></i>",
+                searchPlaceholder: 'Search transactions...',
+            },
+            columnDefs: [
+                { targets: [0], className: 'font-medium' },
+                { targets: '_all', className: 'align-middle' },
+            ],
+        })
+
+        const searchInput = document.getElementById('search')
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                transactionTable.search(this.value).draw()
+            })
+        }
+
+        // Toggle description Read More/Less
+        $(document).on('click', '.toggle-description', function () {
+            const container = $(this).closest('.description-container')
+            const shortDesc = container.find('.short-desc')
+            const fullDesc = container.find('.full-desc')
+            const isExpanded = !fullDesc.hasClass('hidden')
+
+            if (isExpanded) {
+                fullDesc.addClass('hidden')
+                shortDesc.removeClass('hidden')
+                $(this).text('More')
+            } else {
+                fullDesc.removeClass('hidden')
+                shortDesc.addClass('hidden')
+                $(this).text('Less')
+            }
+        })
+    }
+
+    // Initialize DataTables for salary table
+    if (document.getElementById('salaryTable')) {
+        const salaryTable = $('#salaryTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[1, 'desc']], // Sort by Period/Date descending
+            language: {
+                search: "<i class='fas fa-search'></i>",
+                searchPlaceholder: 'Search salaries...',
+            },
+            columnDefs: [
+                { targets: '_all', className: 'align-middle' },
+            ],
+        })
+
+        const salarySearchInput = document.getElementById('salarySearchInput')
+        if (salarySearchInput) {
+            salarySearchInput.addEventListener('keyup', function () {
+                salaryTable.search(this.value).draw()
+            })
+        }
+    }
+
+    // Initialize DataTables for pending salaries table
+    if (document.getElementById('pendingSalariesTable')) {
+        const pendingTable = $('#pendingSalariesTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[2, 'desc'], [1, 'desc']], // Year then month descending
+            language: {
+                search: "<i class='fas fa-search'></i>",
+                searchPlaceholder: 'Search pending...',
+            },
+            columnDefs: [
+                { targets: '_all', className: 'align-middle' },
+            ],
+        })
+
+        const pendingSearchInput = document.getElementById('pendingSearchInput')
+        if (pendingSearchInput) {
+            pendingSearchInput.addEventListener('keyup', function () {
+                pendingTable.search(this.value).draw()
+            })
+        }
+    }
+
+    // Initialize DataTables for user table
+    if (document.getElementById('userTable')) {
+        const userTable = $('#userTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[4, 'desc']], // Created date descending
+            language: {
+                search: "<i class='fas fa-search'></i>",
+                searchPlaceholder: 'Search users...',
+            },
+            columnDefs: [
+                { targets: '_all', className: 'align-middle' },
+            ],
+        })
+
+        const userSearchInput = document.getElementById('userSearchInput')
+        if (userSearchInput) {
+            userSearchInput.addEventListener('keyup', function () {
+                userTable.search(this.value).draw()
+            })
+        }
+    }
+
 
   // Add Employee Modal (2025)
   const openBtn = document.getElementById('openAddEmployee2025Modal')
@@ -468,45 +591,28 @@ document.addEventListener('DOMContentLoaded', function () {
     'closeAddEmployee2025ModalFooter'
   )
 
-  function openModal() {
-    if (modal2025) {
-      modal2025.classList.remove('hide')
-      modal2025.style.display = 'flex'
-    }
-  }
-
-  function closeModal() {
-    if (modal2025) {
-      modal2025.classList.add('hide')
-      setTimeout(() => {
-        modal2025.style.display = 'none'
-        // Reset the form when modal is closed
-        const form = modal2025.querySelector('form')
-        if (form) {
-          form.reset()
-          form.classList.remove('was-validated')
-        }
-      }, 300)
-    }
-  }
-
   if (openBtn) {
-    openBtn.addEventListener('click', openModal)
-  }
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeModal)
-  }
-  if (closeBtnFooter) {
-    closeBtnFooter.addEventListener('click', closeModal)
+    openBtn.addEventListener('click', () => window.openModal('addEmployee2025Modal'))
   }
 
-  // Close on overlay click
-  if (modal2025) {
-    modal2025.addEventListener('click', function (e) {
-      if (e.target === modal2025) {
-        closeModal()
-      }
-    })
+  const closeEmployeeModal = () => {
+      window.closeModal('addEmployee2025Modal');
+      setTimeout(() => {
+          const form = modal2025.querySelector('form');
+          if (form) {
+              form.reset();
+              form.classList.remove('was-validated');
+          }
+      }, 300);
+  };
+
+  if (closeBtn) closeBtn.addEventListener('click', closeEmployeeModal);
+  if (closeBtnFooter) closeBtnFooter.addEventListener('click', closeEmployeeModal);
+
+  // Close on backdrop click (we added the backdrop element specifically)
+  const addEmployeeBackdrop = document.getElementById('addEmployeeModalBackdrop');
+  if (addEmployeeBackdrop) {
+      addEmployeeBackdrop.addEventListener('click', closeEmployeeModal);
   }
 
   // Initialize Flatpickr for hire date
@@ -606,52 +712,51 @@ document.addEventListener('DOMContentLoaded', function () {
   // Handle View Details button click
   $('#employeeTable tbody').on('click', '.btn-view-details', function () {
     const employeeId = $(this).data('employee-id')
-    const modal = new bootstrap.Modal(
-      document.getElementById('employeeDetailsModal')
-    )
     const modalBody = document.getElementById('employeeDetailsContent')
 
     modalBody.innerHTML =
-      '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>'
-    modal.show()
+      '<div class="flex justify-center p-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div></div>'
+    
+    window.openModal('employeeDetailsModal');
 
     fetch(`actions/get_employee_details.php?id=${employeeId}`)
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
           const { employee, salaries } = data
-          let salaryHtml = '<p>No salary payments found for this employee.</p>'
+          let salaryHtml = '<p class="text-gray-500 text-sm">No salary payments found for this employee.</p>'
           if (salaries.length > 0) {
             salaryHtml = `
-                            <table class="table table-sm table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Month</th>
-                                        <th>Year</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Payment Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            <div class="overflow-x-auto rounded-xl border border-gray-200">
+                                <table class="w-full text-left text-sm whitespace-nowrap">
+                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                                        <tr>
+                                            <th class="px-4 py-3">Month</th>
+                                            <th class="px-4 py-3">Year</th>
+                                            <th class="px-4 py-3">Amount</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3">Payment Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
                         `
             salaries.forEach((s) => {
               salaryHtml += `
-                                <tr>
-                                    <td>${new Date(
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-4 py-3 text-gray-800">${new Date(
                                       s.year,
                                       s.month - 1
                                     ).toLocaleString('en-US', {
                                       month: 'long',
                                     })}</td>
-                                    <td>${s.year}</td>
-                                    <td>$${parseFloat(s.amount).toFixed(2)}</td>
-                                    <td><span class="badge bg-${
+                                    <td class="px-4 py-3 text-gray-800">${s.year}</td>
+                                    <td class="px-4 py-3 font-bold text-gray-800">$${parseFloat(s.amount).toFixed(2)}</td>
+                                    <td class="px-4 py-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                       s.status === 'paid'
-                                        ? 'success'
-                                        : 'warning'
+                                        ? 'bg-green-100 text-green-800 border border-green-200'
+                                        : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
                                     }">${s.status}</span></td>
-                                    <td>${
+                                    <td class="px-4 py-3 text-gray-500">${
                                       s.payment_date
                                         ? new Date(
                                             s.payment_date
@@ -661,48 +766,83 @@ document.addEventListener('DOMContentLoaded', function () {
                                 </tr>
                             `
             })
-            salaryHtml += '</tbody></table>'
+            salaryHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `
           }
 
           modalBody.innerHTML = `
-                        <h4>${employee.first_name} ${employee.last_name}</h4>
-                        <p><strong>ID:</strong> ${employee.employee_id}</p>
-                        <p><strong>Position:</strong> ${employee.position}</p>
-                        <p><strong>Email:</strong> ${
-                          employee.email || 'N/A'
-                        }</p>
-                        <p><strong>Phone:</strong> ${
-                          employee.phone || 'N/A'
-                        }</p>
-                        <p><strong>Monthly Salary:</strong> $${parseFloat(
-                          employee.monthly_salary
-                        ).toFixed(2)}</p>
-                        <p><strong>Hire Date:</strong> ${
-                          employee.hire_date
-                            ? new Date(employee.hire_date).toLocaleDateString()
-                            : 'N/A'
-                        }</p>
-                        <p><strong>Status:</strong> <span class="badge bg-${
-                          employee.status === 'active' ? 'success' : 'secondary'
-                        }">${employee.status}</span></p>
-                        ${
-                          employee.attachment_path
-                            ? `<p><strong>Attachment:</strong> <a href="${employee.attachment_path}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-pdf me-1"></i>View Document</a></p>`
-                            : '<p><strong>Attachment:</strong> <span class="text-muted">No attachment</span></p>'
-                        }
-                        <hr>
-                        <h5>Salary History</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-1 uppercase tracking-wider text-xs font-semibold">Name</p>
+                                <p class="font-bold text-gray-800 text-base">${employee.first_name} ${employee.last_name}</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-1 uppercase tracking-wider text-xs font-semibold">Employee ID</p>
+                                <p class="font-bold text-gray-800 text-base">${employee.employee_id}</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-1 uppercase tracking-wider text-xs font-semibold">Email</p>
+                                <p class="text-gray-800">${employee.email || 'N/A'}</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-1 uppercase tracking-wider text-xs font-semibold">Phone</p>
+                                <p class="text-gray-800">${employee.phone || 'N/A'}</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-1 uppercase tracking-wider text-xs font-semibold">Position</p>
+                                <p class="text-gray-800">${employee.position}</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-1 uppercase tracking-wider text-xs font-semibold">Monthly Salary</p>
+                                <p class="font-bold text-green-600">$${parseFloat(employee.monthly_salary).toFixed(2)}</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-1 uppercase tracking-wider text-xs font-semibold">Hire Date</p>
+                                <p class="text-gray-800">${
+                                  employee.hire_date
+                                    ? new Date(employee.hire_date).toLocaleDateString()
+                                    : 'N/A'
+                                }</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-1 uppercase tracking-wider text-xs font-semibold">Status</p>
+                                <p><span class="px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                                  employee.status === 'active' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-gray-100 text-gray-800 border-gray-200'
+                                }">${employee.status}</span></p>
+                            </div>
+                            <div class="md:col-span-2 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <p class="text-gray-500 mb-2 uppercase tracking-wider text-xs font-semibold">Attachment</p>
+                                ${
+                                  employee.attachment_path
+                                    ? `<a href="${employee.attachment_path}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-white border border-brand text-brand hover:bg-brand hover:text-white rounded-lg text-sm font-medium transition-colors"><i class="fas fa-file-pdf mr-2"></i>View Document</a>`
+                                    : '<span class="text-gray-400 italic">No attachment</span>'
+                                }
+                            </div>
+                        </div>
+                        <h5 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Salary History</h5>
                         ${salaryHtml}
                     `
         } else {
-          modalBody.innerHTML = `<div class="alert alert-danger">${data.message}</div>`
+          modalBody.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm">${data.message}</div>`
         }
       })
       .catch((err) => {
-        modalBody.innerHTML = `<div class="alert alert-danger">An error occurred while fetching details.</div>`
+        modalBody.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm">An error occurred while fetching details.</div>`
         console.error(err)
       })
   })
+
+  // Close handlers for Employee Details Modal
+  const closeDetailsModalBtn = document.getElementById('closeEmployeeDetailsModal');
+  const closeDetailsModalFooterBtn = document.getElementById('closeEmployeeDetailsModalFooter');
+  const detailsModalBackdrop = document.getElementById('employeeDetailsModalBackdrop');
+
+  if (closeDetailsModalBtn) closeDetailsModalBtn.addEventListener('click', () => window.closeModal('employeeDetailsModal'));
+  if (closeDetailsModalFooterBtn) closeDetailsModalFooterBtn.addEventListener('click', () => window.closeModal('employeeDetailsModal'));
+  if (detailsModalBackdrop) detailsModalBackdrop.addEventListener('click', () => window.closeModal('employeeDetailsModal'));
 
   // Handle employee status change
   $('#employeeTable tbody').on(
@@ -713,7 +853,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const employeeId = select.data('employee-id')
       const newStatus = select.val()
       const originalStatus = select.data('original-status')
-      const spinner = select.next('.spinner-border')
+      const spinner = select.siblings('.spinner-border')
 
       spinner.removeClass('d-none')
       select.prop('disabled', true)

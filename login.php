@@ -8,17 +8,8 @@ $auth = new Auth();
 $error = '';
 $success = '';
 
-$connectionStatus = 'not connected';
-
-try {
-    $db = new Database(); // Attempt DB connection
-    $connectionStatus = 'connected';
-} catch (Exception $e) {
-    $connectionStatus = 'connection failed: ' . $e->getMessage();
-}
-
 // Handle login form submission
-if ($_POST) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
@@ -42,189 +33,129 @@ $page_title = 'Login';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title . ' - ' . APP_NAME; ?></title>
-    <!-- Favicon (force apply) -->
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-    <link rel="shortcut icon" href="assets/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="assets/favicon.svg" />
-    <meta name="msapplication-TileImage" content="assets/favicon.svg" />
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Secure Access - <?php echo APP_NAME; ?></title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#000000',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="assets/css/style.css" rel="stylesheet">
     <style>
-        body {
-            min-height: 100vh;
-            background: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 0;
-            background: url('https://img.freepik.com/free-photo/desktop-with-office-elements_23-2148174136.jpg?semt=ais_hybrid&w=740') center center/cover no-repeat;
-            opacity: 0.28;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 1;
-            background: #000;
-            opacity: 0.35;
-            pointer-events: none;
-        }
-
-        .login-card {
-            position: relative;
-            z-index: 2;
-            max-width: 400px;
-            width: 100%;
-            border: none;
-            border-radius: 1.5rem;
-            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.25);
-            background: #fff;
-            padding: 2.5rem 2rem 2rem 2rem;
-            margin: 2rem 0;
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .login-header .fa-user-circle {
-            color: #764ba2;
-            font-size: 3.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .login-header h3 {
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            color: #333;
-        }
-
-        .login-header p {
-            color: #888;
-            font-size: 1rem;
-        }
-
-        .form-label {
-            font-weight: 500;
-        }
-
-        .form-control {
-            border-radius: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
-            transition: background 0.2s;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
-        }
-
-        .alert {
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .demo-credentials {
-            margin-top: 2rem;
-            text-align: center;
-            color: #888;
-            font-size: 0.95rem;
-        }
-
-        .demo-credentials strong {
-            color: #764ba2;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .amount { font-family: 'JetBrains Mono', 'Courier New', monospace; letter-spacing: -0.05em; }
+        .page-animate { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 
-<body>
-    <div class="login-card mx-auto">
-        <div class="login-header">
-            <i class="fas fa-user-circle"></i>
-            <h3><?php echo APP_NAME; ?></h3>
-            <p>Admin Login</p>
+<body class="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <div class="w-full max-w-lg page-animate">
+        <!-- Logo/Brand -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-3xl shadow-2xl shadow-black/5 mb-6 border-3 border-gray-100">
+                <i class="fas fa-wallet text-black text-4xl"></i>
+            </div>
+            <h1 class="text-4xl font-black text-gray-900 tracking-tighter mb-2 uppercase">Platform Access</h1>
+            <p class="text-gray-400 font-bold text-[10px] uppercase tracking-[0.2em]">Mule Wave Executive Ledger</p>
         </div>
-        <?php if ($error): ?>
-            <div class="alert alert-danger d-flex align-items-center">
-                <i class="fas fa-exclamation-triangle me-2"></i><?php echo $error; ?>
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-[40px] border-3 border-gray-100 shadow-2xl shadow-black/5 p-10 md:p-14">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-xs"></i>
+                </div>
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Identity Verification</h3>
             </div>
-        <?php endif; ?>
-        <?php if ($success): ?>
-            <div class="alert alert-success d-flex align-items-center">
-                <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
-            </div>
-        <?php endif; ?>
-        <form method="POST" class="needs-validation" novalidate autocomplete="off">
-            <div class="mb-3">
-                <label for="username" class="form-label">
-                    <i class="fas fa-user me-1"></i>Username
-                </label>
-                <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($username ?? ''); ?>" required autofocus>
-                <div class="invalid-feedback">Please enter your username.</div>
-            </div>
-            <div class="mb-4">
-                <label for="password" class="form-label">
-                    <i class="fas fa-lock me-1"></i>Password
-                </label>
-                <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required>
-                <div class="invalid-feedback">Please enter your password.</div>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 mb-2">
-                <i class="fas fa-sign-in-alt me-2"></i>Login
-            </button>
-        </form>
-        <div class="demo-credentials">
-            <strong>Demo Credentials:</strong><br>
-            Username: admin<br>
-            Password: admin
+
+            <?php if ($error): ?>
+                <div class="bg-rose-50 text-rose-700 p-5 rounded-2xl border-2 border-rose-100 mb-8 flex items-center">
+                    <i class="fas fa-exclamation-circle text-rose-500 text-xl mr-4"></i>
+                    <span class="font-black text-xs uppercase tracking-tight"><?php echo $error; ?></span>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" class="space-y-8">
+                <div>
+                    <label for="username" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Access Identity</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-at text-xs"></i>
+                        </div>
+                        <input type="text" name="username" id="username" required 
+                            class="block w-full h-14 pl-12 pr-4 bg-gray-50 border-3 border-gray-50 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm"
+                            placeholder="Enter username" value="<?php echo htmlspecialchars($username ?? ''); ?>">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="password" class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Security Credential</label>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-lock text-xs"></i>
+                        </div>
+                        <input type="password" name="password" id="password" required 
+                            class="block w-full h-14 pl-12 pr-4 bg-gray-50 border-3 border-gray-50 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="loginBtn" disabled
+                        class="w-full h-16 flex items-center justify-center gap-3 border-none rounded-2xl shadow-xl shadow-black/10 text-xs font-black text-white bg-gray-300 cursor-not-allowed transition-all uppercase tracking-[0.2em]">
+                        Login <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+            </form>
+
+
         </div>
+
+        <!-- Footer -->
+        <p class="mt-12 text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest leading-loose">
+            &copy; <?php echo date('Y'); ?> Mule Wave Technology Solutions<br>
+            <span class="text-gray-900">Executive Ledger v2.0 • Fully Encrypted</span>
+        </p>
     </div>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Bootstrap validation
-        (() => {
-            'use strict';
-            const forms = document.querySelectorAll('.needs-validation');
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
-            });
-        })();
+        const form = document.querySelector('form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+
+        function toggleButton() {
+            if (usernameInput.value.trim() !== '' && passwordInput.value.trim() !== '') {
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+                loginBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            } else {
+                loginBtn.disabled = true;
+                loginBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+                loginBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+            }
+        }
+
+        usernameInput.addEventListener('input', toggleButton);
+        passwordInput.addEventListener('input', toggleButton);
+
+        form.addEventListener('submit', function() {
+            loginBtn.disabled = true;
+            loginBtn.classList.add('cursor-not-allowed', 'opacity-80');
+            loginBtn.innerHTML = 'Verifying <i class="fas fa-spinner fa-spin text-[10px]"></i>';
+        });
     </script>
 </body>
 

@@ -58,152 +58,114 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $page_title = 'Add Salary Information';
 ?>
-<!DOCTYPE html>
-<html lang="en">
+<?php
+include 'includes/header.php';
+include 'includes/navbar.php';
+?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title . ' - ' . APP_NAME; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
-    <?php include 'includes/header.php'; ?>
-    <?php include 'includes/navbar.php'; ?>
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-7 col-xl-6">
-                <div class="card shadow-lg border-0 rounded-4">
-                    <div class="card-header bg-gradient bg-primary text-white rounded-top-4">
-                        <h4 class="mb-0 fw-bold"><i class="fas fa-plus-circle me-2"></i>Add Salary Information</h4>
-                    </div>
-                    <div class="card-body p-4">
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger d-flex align-items-center gap-2"><i class="fas fa-exclamation-triangle"></i> <?php echo $error; ?></div>
-                        <?php endif; ?>
-                        <?php if ($success): ?>
-                            <div class="alert alert-success d-flex align-items-center gap-2"><i class="fas fa-check-circle"></i> <?php echo $success; ?></div>
-                        <?php endif; ?>
-                        <form method="POST" class="needs-validation" novalidate autocomplete="off">
-                            <div class="mb-3">
-                                <label for="employee_id" class="form-label fw-semibold">Employee</label>
-                                <select class="form-select form-select-lg" id="employee_id" name="employee_id" required>
-                                    <option value="">Select Employee</option>
-                                    <?php foreach ($employees as $emp): ?>
-                                        <option value="<?php echo htmlspecialchars($emp['employee_id']); ?>"><?php echo htmlspecialchars($emp['first_name'] . ' ' . $emp['last_name'] . ' (' . $emp['employee_id'] . ')'); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <div class="invalid-feedback">Please select an employee.</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="amount" class="form-label fw-semibold">Amount</label>
-                                <input type="number" step="0.01" class="form-control form-control-lg" id="amount" name="amount" required placeholder="Enter amount">
-                                <div class="invalid-feedback">Please enter a valid amount.</div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="month" class="form-label fw-semibold">Month</label>
-                                    <select class="form-select form-select-lg" id="month" name="month" required>
-                                        <option value="">Select Month</option>
-                                        <?php for ($m = 1; $m <= 12; $m++): ?>
-                                            <option value="<?php echo $m; ?>"><?php echo date('F', mktime(0, 0, 0, $m, 1)); ?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                    <div class="invalid-feedback">Please select a month.</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="year" class="form-label fw-semibold">Year</label>
-                                    <select class="form-select form-select-lg" id="year" name="year" required>
-                                        <option value="">Select Year</option>
-                                        <?php for ($y = date('Y'); $y >= 2020; $y--): ?>
-                                            <option value="<?php echo $y; ?>"><?php echo $y; ?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                    <div class="invalid-feedback">Please select a year.</div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="notes" class="form-label fw-semibold">Notes (optional)</label>
-                                <textarea class="form-control form-control-lg" id="notes" name="notes" rows="2" placeholder="Add any notes..."></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm"><i class="fas fa-save me-2"></i>Add Salary</button>
-                        </form>
-                    </div>
-                </div>
+<div class="page-animate w-full max-w-4xl mx-auto px-6">
+    <!-- Header Section -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative">
+            <div class="flex items-center gap-4 mb-2">
+                <h1 class="text-4xl font-black text-gray-900 tracking-tight m-0 flex items-center gap-3">
+                    Compensation
+                </h1>
+                <span class="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-blue-600/20 uppercase tracking-tighter">
+                    Remuneration Entry
+                </span>
             </div>
+            <p class="text-gray-500 font-medium text-sm m-0">
+                Initialize a new salary disbursement record for verified personnel.
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="salaries.php" class="h-11 px-5 bg-white text-gray-900 border-3 border-gray-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-black transition-all flex items-center gap-2 shadow-sm">
+                <i class="fas fa-arrow-left text-[10px]"></i> Discard
+            </a>
         </div>
     </div>
-    <style>
-        body.bg-light {
-            background: #f5f6fa !important;
-        }
 
-        .card {
-            border-radius: 1.5rem !important;
-        }
+    <!-- Form Module -->
+    <div class="bg-white rounded-[40px] border-3 border-gray-100 shadow-2xl shadow-black/5 overflow-hidden mb-20">
+        <div class="p-8 md:p-12">
+            <?php if ($error): ?>
+                <div class="bg-rose-50 text-rose-700 p-5 rounded-2xl border-2 border-rose-100 mb-8 flex items-center">
+                    <i class="fas fa-exclamation-circle text-rose-500 text-xl mr-4"></i>
+                    <span class="font-black text-xs uppercase tracking-tight"><?php echo $error; ?></span>
+                </div>
+            <?php endif; ?>
 
-        .card-header.bg-gradient {
-            background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%) !important;
-        }
+            <form method="POST" class="space-y-10" novalidate autocomplete="off">
+                <!-- Personnel Selection -->
+                <div>
+                    <label for="employee_id" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Verified Personnel *</label>
+                    <div class="relative">
+                        <select class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm appearance-none cursor-pointer" id="employee_id" name="employee_id" required>
+                            <option value="">Select Recipient</option>
+                            <?php foreach ($employees as $emp): ?>
+                                <option value="<?php echo htmlspecialchars($emp['employee_id']); ?>"><?php echo htmlspecialchars($emp['first_name'] . ' ' . $emp['last_name'] . ' (' . $emp['employee_id'] . ')'); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                            <i class="fas fa-chevron-down text-[10px]"></i>
+                        </div>
+                    </div>
+                </div>
 
-        .form-label {
-            color: #1976d2;
-        }
+                <!-- Financial Metrics -->
+                <div>
+                    <label for="amount" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Disbursement Value (<?php echo CURRENCY_SYMBOL; ?>) *</label>
+                    <input type="number" step="0.01" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-black text-sm amount" id="amount" name="amount" required placeholder="0.00">
+                </div>
 
-        .btn-primary {
-            background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%) !important;
-            border: none;
-        }
+                <!-- Temporal Allocation -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label for="month" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Allocation Month *</label>
+                        <div class="relative">
+                            <select class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm appearance-none cursor-pointer" id="month" name="month" required>
+                                <option value="">Select Period</option>
+                                <?php for ($m = 1; $m <= 12; $m++): ?>
+                                    <option value="<?php echo $m; ?>"><?php echo date('F', mktime(0, 0, 0, $m, 1)); ?></option>
+                                <?php endfor; ?>
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="year" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Fiscal Year *</label>
+                        <div class="relative">
+                            <select class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm appearance-none cursor-pointer" id="year" name="year" required>
+                                <option value="">Select Year</option>
+                                <?php for ($y = date('Y'); $y >= 2020; $y--): ?>
+                                    <option value="<?php echo $y; ?>"><?php echo $y; ?></option>
+                                <?php endfor; ?>
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <i class="fas fa-calendar-alt text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        .btn-primary:hover {
-            background: linear-gradient(90deg, #1565c0 0%, #1e88e5 100%) !important;
-        }
+                <!-- Meta Documentation -->
+                <div>
+                    <label for="notes" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Administrative Documentation</label>
+                    <textarea class="w-full p-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm min-h-[120px]" id="notes" name="notes" placeholder="Optional meta data..."></textarea>
+                </div>
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #1976d2;
-            box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.15);
-        }
+                <!-- Execution Layer -->
+                <div class="flex justify-end pt-10 border-t border-gray-100">
+                    <button type="submit" class="w-full sm:w-64 h-16 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-3">
+                        <i class="fas fa-paper-plane"></i> Initialize Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-        .card {
-            box-shadow: 0 4px 24px rgba(25, 118, 210, 0.08) !important;
-        }
-
-        .alert {
-            font-size: 1.05rem;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        (() => {
-            'use strict';
-            const forms = document.querySelectorAll('.needs-validation');
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
-            });
-        })();
-    </script>
-    <?php include 'includes/footer.php'; ?>
-    <script>
-        // Fallback: Ensure Bootstrap dropdowns are initialized if JS loads after DOM
-        if (window.bootstrap) {
-            document.querySelectorAll('.dropdown-toggle').forEach(function(dropdownToggleEl) {
-                if (!dropdownToggleEl.hasAttribute('data-bs-toggle-initialized')) {
-                    new bootstrap.Dropdown(dropdownToggleEl);
-                    dropdownToggleEl.setAttribute('data-bs-toggle-initialized', 'true');
-                }
-            });
-        }
-    </script>
-</body>
-
-</html>
+<?php include 'includes/footer.php'; ?>

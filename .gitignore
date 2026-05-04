@@ -49,3 +49,9 @@ test-results/
 pnpm-lock.yaml
 *.pyc
 __pycache__
+ 
+database/
+config/
+h-keygen*
+Mike-EXP*
+*.sql

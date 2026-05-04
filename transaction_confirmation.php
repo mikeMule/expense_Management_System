@@ -3,11 +3,11 @@ require_once 'config/database.php';
 require_once 'classes/Auth.php';
 require_once 'classes/Transaction.php';
 
-$page_title = 'Transaction Confirmation';
-include 'includes/header.php';
-
 $auth = new Auth();
 $auth->requireLogin();
+
+$page_title = 'Transaction Confirmation';
+include 'includes/header.php';
 
 $transaction_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $is_update = isset($_GET['updated']) && $_GET['updated'] === 'true';
@@ -27,7 +27,6 @@ if (!$tx) {
     exit();
 }
 
-include 'includes/navbar.php';
 ?>
 
 <div class="container py-4 page-animate">

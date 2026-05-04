@@ -14,6 +14,15 @@ $preselected_type = $_GET['type'] ?? 'expense';
 // Get categories for dropdown
 $categories = $transaction->getCategories();
 
+// Determine default notes based on location
+$default_notes = '';
+$user_location = $_SESSION['location'] ?? '';
+if ($user_location === 'Bahirdar') {
+    $default_notes = 'this is From Bahirdar office';
+} elseif ($user_location === 'Addis Ababa') {
+    $default_notes = 'this is From Addis Ababa Office';
+}
+
 // All PHP logic is now complete. We can start the HTML output.
 $page_title = 'Add Transaction';
 include 'includes/header.php';
@@ -85,127 +94,129 @@ include 'includes/header.php';
 
 <?php include 'includes/navbar.php'; ?>
 
-<div class="container py-4 page-animate">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm main-info-card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-plus-circle me-2"></i>Add New Transaction
-                    </h4>
+<div class="page-animate w-full max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative">
+            <div class="flex items-center gap-4 mb-2">
+                <h1 class="text-4xl font-black text-gray-900 tracking-tight m-0 flex items-center gap-3">
+                    New Ledger
+                </h1>
+                <span class="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-emerald-600/20 uppercase tracking-tighter">
+                    Append Entry
+                </span>
+            </div>
+            <p class="text-gray-500 font-medium text-sm m-0">
+                Initialize a new financial record in the primary transaction console.
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="transactions.php" class="h-11 px-5 bg-white text-gray-900 border-3 border-gray-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-black transition-all flex items-center gap-2 shadow-sm">
+                <i class="fas fa-arrow-left text-[10px]"></i> Discard
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Module -->
+    <div class="bg-white rounded-[40px] border-3 border-gray-100 shadow-2xl shadow-black/5 overflow-hidden">
+        <div class="p-8 md:p-12">
+            <div id="alert-container"></div>
+
+            <form id="addTransactionForm" method="POST" class="space-y-10" novalidate autocomplete="off" enctype="multipart/form-data">
+                <!-- Core Classification -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="group relative">
+                        <label for="type" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Type Allocation *</label>
+                        <div class="relative">
+                            <select class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm appearance-none cursor-pointer" id="type" name="type" required>
+                                <option value="">Select Type</option>
+                                <option value="income" <?php echo $preselected_type == 'income' ? 'selected' : ''; ?>>Income / Inflow</option>
+                                <option value="expense" <?php echo $preselected_type == 'expense' ? 'selected' : ''; ?>>Expense / Outflow</option>
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                        <div class="text-rose-500 text-[10px] font-bold mt-1.5 ml-1 hidden" id="type-error">Please define transaction class.</div>
+                    </div>
+
+                    <div>
+                        <label for="category_id" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Registry Category</label>
+                        <div class="relative">
+                            <select class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm appearance-none cursor-pointer" id="category_id" name="category_id">
+                                <option value="">Select Classification (Optional)</option>
+                                <?php foreach ($categories as $cat): ?>
+                                    <option value="<?php echo $cat['id']; ?>" data-type="<?php echo $cat['type']; ?>">
+                                        <?php echo htmlspecialchars($cat['name']); ?> (<?php echo ucfirst($cat['type']); ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <i class="fas fa-layer-group text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div id="alert-container"></div>
 
-                    <form id="addTransactionForm" method="POST" class="needs-validation" novalidate autocomplete="off" enctype="multipart/form-data">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="type" class="form-label">
-                                    <i class="fas fa-exchange-alt me-1"></i>Transaction Type *
-                                </label>
-                                <select class="form-select" id="type" name="type" required>
-                                    <option value="">Select Type</option>
-                                    <option value="income" <?php echo $preselected_type == 'income' ? 'selected' : ''; ?>>
-                                        Income
-                                    </option>
-                                    <option value="expense" <?php echo $preselected_type == 'expense' ? 'selected' : ''; ?>>
-                                        Expense
-                                    </option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select a transaction type.
-                                </div>
-                            </div>
+                <!-- Financial Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label for="amount" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Net Value (<?php echo CURRENCY_SYMBOL; ?>) *</label>
+                        <input type="number" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-black text-sm amount" id="amount" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                        <div class="text-rose-500 text-[10px] font-bold mt-1.5 ml-1 hidden" id="amount-error">Valid numerical value required.</div>
+                    </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="category_id" class="form-label">
-                                    <i class="fas fa-tags me-1"></i>Category
-                                </label>
-                                <select class="form-select" id="category_id" name="category_id">
-                                    <option value="">Select Category (Optional)</option>
-                                    <?php foreach ($categories as $cat): ?>
-                                        <option value="<?php echo $cat['id']; ?>"
-                                            data-type="<?php echo $cat['type']; ?>">
-                                            <?php echo htmlspecialchars($cat['name']); ?> (<?php echo ucfirst($cat['type']); ?>)
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                    <div>
+                        <label for="transaction_date" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Timeline Timestamp *</label>
+                        <input type="date" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="transaction_date" name="transaction_date" value="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d'); ?>" required>
+                        <div class="text-rose-500 text-[10px] font-bold mt-1.5 ml-1 hidden" id="date-error">Valid timeline date required.</div>
+                    </div>
+                </div>
+
+                <!-- Descriptive Layer -->
+                <div>
+                    <label for="description" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Primary Description *</label>
+                    <input type="text" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="description" name="description" placeholder="Specify entry purpose..." maxlength="255" required>
+                    <div class="text-rose-500 text-[10px] font-bold mt-1.5 ml-1 hidden" id="description-error">Core description required.</div>
+                </div>
+
+                <!-- Supporting Documentation -->
+                <div class="p-8 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 group hover:border-brand transition-all">
+                    <label for="attachment" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 block text-center">Supporting Documentation</label>
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-white border-2 border-gray-100 flex items-center justify-center text-gray-300 group-hover:text-brand transition-colors">
+                            <i class="fas fa-cloud-upload-alt text-2xl"></i>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="amount" class="form-label">
-                                    <i class="fas fa-dollar-sign me-1"></i>Amount *
-                                </label>
-                                <input type="number" class="form-control" id="amount" name="amount"
-                                    step="0.01" min="0.01" placeholder="0.00" data-currency required>
-                                <div class="invalid-feedback">
-                                    Please enter a valid amount.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="transaction_date" class="form-label">
-                                    <i class="fas fa-calendar me-1"></i>Transaction Date *
-                                </label>
-                                <input type="date" class="form-control" id="transaction_date" name="transaction_date"
-                                    value="<?php echo date('Y-m-d'); ?>"
-                                    max="<?php echo date('Y-m-d'); ?>" required>
-                                <div class="invalid-feedback">
-                                    Please select a transaction date.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="description" class="form-label">
-                                <i class="fas fa-file-alt me-1"></i>Description *
-                            </label>
-                            <input type="text" class="form-control" id="description" name="description"
-                                placeholder="Enter transaction description" maxlength="255" required>
-                            <div class="invalid-feedback">
-                                Please enter a description.
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="attachment" class="form-label">
-                                <i class="fas fa-paperclip me-1"></i>Attach File (Optional)
-                            </label>
-                            <input type="file" class="form-control" id="attachment" name="attachment" accept=".pdf,.png,.jpg,.jpeg,.gif">
-                            <small class="form-text text-muted">
-                                Allowed types: PDF, PNG, JPG, GIF. Max size: 5MB.
-                            </small>
-                            <div id="attachment-preview-container" class="mt-2" style="display: none;">
-                                <div class="d-flex align-items-center justify-content-between p-2 border rounded">
-                                    <div id="attachment-preview" style="max-width: 80%; overflow: hidden;"></div>
-                                    <button type="button" id="view-attachment-btn" class="btn btn-sm btn-outline-secondary" style="display: none;">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="notes" class="form-label">
-                                <i class="fas fa-sticky-note me-1"></i>Notes
-                            </label>
-                            <textarea class="form-control" id="notes" name="notes" rows="3"
-                                placeholder="Additional notes (optional)">Mule Wave Technology - Addis Ababa ETHIOPIA</textarea>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="transactions.php" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-1"></i>Back to List
-                            </a>
-                            <button type="submit" class="btn btn-primary" id="saveTransactionBtn">
-                                <i class="fas fa-save me-1"></i>Save Transaction
+                        <input type="file" class="hidden" id="attachment" name="attachment" accept=".pdf,.png,.jpg,.jpeg,.gif">
+                        <button type="button" onclick="document.getElementById('attachment').click()" class="h-10 px-6 bg-white border-2 border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-black transition-all">
+                            Browse Local Repository
+                        </button>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">PDF, PNG, JPG, GIF • MAX 5MB</p>
+                    </div>
+                    
+                    <div id="attachment-preview-container" class="mt-6 hidden">
+                        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                            <div id="attachment-preview" class="flex items-center gap-3"></div>
+                            <button type="button" id="view-attachment-btn" class="h-8 px-4 bg-gray-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-brand transition-all flex items-center gap-2">
+                                <i class="fas fa-expand text-[8px]"></i> Preview
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Administrative Meta -->
+                <div>
+                    <label for="notes" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Administrative Notes</label>
+                    <textarea class="w-full p-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm min-h-[120px]" id="notes" name="notes" placeholder="Optional meta data..."><?php echo htmlspecialchars($default_notes); ?></textarea>
+                </div>
+
+                <!-- Execution Layer -->
+                <div class="flex flex-col sm:flex-row justify-end items-center gap-4 pt-10 border-t border-gray-100">
+                    <button type="submit" class="w-full sm:w-64 h-16 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-3" id="saveTransactionBtn">
+                        <i class="fas fa-check-circle"></i> Commit Entry
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -279,7 +290,7 @@ include 'includes/header.php';
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.href = `transaction_confirmation.php?id=${data.transaction_id}`;
+                        window.location.href = 'transactions.php';
                     } else {
                         showAlert(data.message, 'danger');
                     }
@@ -295,11 +306,17 @@ include 'includes/header.php';
         });
 
         function showAlert(message, type = 'danger') {
+            const bgColor = type === 'success' ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500';
+            const textColor = type === 'success' ? 'text-green-700' : 'text-red-700';
+            const icon = type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-triangle text-red-500';
+
             alertContainer.innerHTML = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="${bgColor} border-l-4 p-4 mb-6 rounded-r-xl flex items-center shadow-sm">
+                    <i class="fas ${icon} mr-3 text-lg"></i>
+                    <p class="${textColor} text-sm font-medium flex-grow">${message}</p>
+                    <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             `;
         }

@@ -4,35 +4,40 @@ require_once 'Database.php';
 class Employee
 {
     private $db;
+    private $location;
 
     public function __construct()
     {
         $this->db = new Database;
+        $this->location = $_SESSION['location'] ?? 'Addis Ababa';
     }
 
     public function getAllEmployees()
     {
-        $this->db->query('SELECT * FROM employees ORDER BY first_name, last_name');
+        $this->db->query('SELECT * FROM employees WHERE location = :location ORDER BY first_name, last_name');
+        $this->db->bind(':location', $this->location);
         return $this->db->resultset();
     }
 
     public function getActiveEmployees()
     {
-        $this->db->query("SELECT * FROM employees WHERE status = 'active' ORDER BY first_name, last_name");
+        $this->db->query("SELECT * FROM employees WHERE location = :location AND status = 'active' ORDER BY first_name, last_name");
+        $this->db->bind(':location', $this->location);
         return $this->db->resultset();
     }
 
     public function getEmployeeById($id)
     {
-        $this->db->query('SELECT * FROM employees WHERE id = :id');
+        $this->db->query('SELECT * FROM employees WHERE id = :id AND location = :location');
         $this->db->bind(':id', $id);
+        $this->db->bind(':location', $this->location);
         return $this->db->single();
     }
 
     public function addEmployee($employee_id, $first_name, $last_name, $email, $phone, $position, $monthly_salary, $hire_date, $attachment_path = null)
     {
-        $this->db->query('INSERT INTO employees (employee_id, first_name, last_name, email, phone, position, monthly_salary, hire_date, attachment_path) 
-                          VALUES (:employee_id, :first_name, :last_name, :email, :phone, :position, :monthly_salary, :hire_date, :attachment_path)');
+        $this->db->query('INSERT INTO employees (employee_id, first_name, last_name, email, phone, position, monthly_salary, hire_date, attachment_path, location) 
+                          VALUES (:employee_id, :first_name, :last_name, :email, :phone, :position, :monthly_salary, :hire_date, :attachment_path, :location)');
 
         $this->db->bind(':employee_id', $employee_id);
         $this->db->bind(':first_name', $first_name);
@@ -43,6 +48,7 @@ class Employee
         $this->db->bind(':monthly_salary', $monthly_salary);
         $this->db->bind(':hire_date', $hire_date);
         $this->db->bind(':attachment_path', $attachment_path);
+        $this->db->bind(':location', $this->location);
 
         return $this->db->execute();
     }
@@ -54,7 +60,7 @@ class Employee
                               email = :email, phone = :phone, position = :position, 
                               monthly_salary = :monthly_salary, hire_date = :hire_date, status = :status, 
                               attachment_path = :attachment_path 
-                          WHERE id = :id');
+                          WHERE id = :id AND location = :location');
 
         $this->db->bind(':id', $id);
         $this->db->bind(':employee_id', $employee_id);
@@ -67,28 +73,32 @@ class Employee
         $this->db->bind(':hire_date', $hire_date);
         $this->db->bind(':status', $status);
         $this->db->bind(':attachment_path', $attachment_path);
+        $this->db->bind(':location', $this->location);
 
         return $this->db->execute();
     }
 
     public function updateEmployeeStatus($id, $status)
     {
-        $this->db->query('UPDATE employees SET status = :status WHERE id = :id');
+        $this->db->query('UPDATE employees SET status = :status WHERE id = :id AND location = :location');
         $this->db->bind(':id', $id);
         $this->db->bind(':status', $status);
+        $this->db->bind(':location', $this->location);
         return $this->db->execute();
     }
 
     public function deleteEmployee($id)
     {
-        $this->db->query('DELETE FROM employees WHERE id = :id');
+        $this->db->query('DELETE FROM employees WHERE id = :id AND location = :location');
         $this->db->bind(':id', $id);
+        $this->db->bind(':location', $this->location);
         return $this->db->execute();
     }
 
     public function getEmployeeCount()
     {
-        $this->db->query("SELECT COUNT(*) as count FROM employees WHERE status = 'active'");
+        $this->db->query("SELECT COUNT(*) as count FROM employees WHERE status = 'active' AND location = :location");
+        $this->db->bind(':location', $this->location);
         $result = $this->db->single();
         return $result['count'];
     }
@@ -97,15 +107,17 @@ class Employee
     {
         $query = 'SELECT sp.*, e.first_name, e.last_name, e.employee_id, e.position 
                   FROM salary_payments sp 
-                  JOIN employees e ON sp.employee_id = e.id';
+                  JOIN employees e ON sp.employee_id = e.id
+                  WHERE sp.location = :location';
 
         if ($month !== null && $year !== null) {
-            $query .= ' WHERE sp.month = :month AND sp.year = :year';
+            $query .= ' AND sp.month = :month AND sp.year = :year';
         }
 
         $query .= ' ORDER BY sp.year DESC, sp.month DESC, e.first_name, e.last_name';
 
         $this->db->query($query);
+        $this->db->bind(':location', $this->location);
 
         if ($month !== null && $year !== null) {
             $this->db->bind(':month', $month);
@@ -117,14 +129,15 @@ class Employee
 
     public function addSalaryPayment($employee_id, $month, $year, $amount, $notes = '')
     {
-        $this->db->query('INSERT INTO salary_payments (employee_id, month, year, amount, notes) 
-                          VALUES (:employee_id, :month, :year, :amount, :notes)');
+        $this->db->query('INSERT INTO salary_payments (employee_id, month, year, amount, notes, location) 
+                          VALUES (:employee_id, :month, :year, :amount, :notes, :location)');
 
         $this->db->bind(':employee_id', $employee_id);
         $this->db->bind(':month', $month);
         $this->db->bind(':year', $year);
         $this->db->bind(':amount', $amount);
         $this->db->bind(':notes', $notes);
+        $this->db->bind(':location', $this->location);
 
         return $this->db->execute();
     }
@@ -133,10 +146,11 @@ class Employee
     {
         $this->db->query("UPDATE salary_payments 
                           SET status = 'paid', payment_date = :payment_date 
-                          WHERE id = :id");
+                          WHERE id = :id AND location = :location");
 
         $this->db->bind(':id', $payment_id);
         $this->db->bind(':payment_date', $payment_date);
+        $this->db->bind(':location', $this->location);
 
         return $this->db->execute();
     }
@@ -146,8 +160,9 @@ class Employee
         $this->db->query("SELECT sp.*, e.first_name, e.last_name, e.employee_id 
                           FROM salary_payments sp 
                           JOIN employees e ON sp.employee_id = e.id 
-                          WHERE sp.status = 'pending' 
+                          WHERE sp.location = :location AND sp.status = 'pending' 
                           ORDER BY sp.year, sp.month, e.first_name");
+        $this->db->bind(':location', $this->location);
         return $this->db->resultset();
     }
 
@@ -155,7 +170,8 @@ class Employee
     {
         $this->db->query("SELECT COALESCE(SUM(monthly_salary), 0) as total 
                           FROM employees 
-                          WHERE status = 'active'");
+                          WHERE location = :location AND status = 'active'");
+        $this->db->bind(':location', $this->location);
         $result = $this->db->single();
         return $result['total'];
     }
@@ -167,10 +183,11 @@ class Employee
 
         foreach ($employees as $employee) {
             // Check if payment already exists
-            $this->db->query('SELECT COUNT(*) as count FROM salary_payments WHERE employee_id = :employee_id AND month = :month AND year = :year');
+            $this->db->query('SELECT COUNT(*) as count FROM salary_payments WHERE employee_id = :employee_id AND month = :month AND year = :year AND location = :location');
             $this->db->bind(':employee_id', $employee['id']);
             $this->db->bind(':month', $month);
             $this->db->bind(':year', $year);
+            $this->db->bind(':location', $this->location);
             if ($this->db->single()['count'] > 0) {
                 continue; // Skip if already exists
             }
@@ -188,33 +205,37 @@ class Employee
         $this->db->query('SELECT sp.*, e.first_name, e.last_name, e.employee_id
                           FROM salary_payments sp
                           JOIN employees e ON sp.employee_id = e.id
-                          WHERE sp.id = :id');
+                          WHERE sp.id = :id AND sp.location = :location');
         $this->db->bind(':id', $id);
+        $this->db->bind(':location', $this->location);
         return $this->db->single();
     }
 
     public function markSalaryAsPaid($payment_id)
     {
-        $this->db->query("UPDATE salary_payments SET status = 'paid', payment_date = :payment_date WHERE id = :id");
+        $this->db->query("UPDATE salary_payments SET status = 'paid', payment_date = :payment_date WHERE id = :id AND location = :location");
 
         $payment_date = date('Y-m-d H:i:s.u');
         $this->db->bind(':payment_date', $payment_date);
         $this->db->bind(':id', $payment_id);
+        $this->db->bind(':location', $this->location);
 
         return $this->db->execute();
     }
 
     public function revertSalaryPaymentStatus($id)
     {
-        $this->db->query("UPDATE salary_payments SET status = 'pending', payment_date = NULL WHERE id = :id");
+        $this->db->query("UPDATE salary_payments SET status = 'pending', payment_date = NULL WHERE id = :id AND location = :location");
         $this->db->bind(':id', $id);
+        $this->db->bind(':location', $this->location);
         return $this->db->execute();
     }
 
     public function deleteSalaryPayment($id)
     {
-        $this->db->query('DELETE FROM salary_payments WHERE id = :id');
+        $this->db->query('DELETE FROM salary_payments WHERE id = :id AND location = :location');
         $this->db->bind(':id', $id);
+        $this->db->bind(':location', $this->location);
         return $this->db->execute();
     }
 }

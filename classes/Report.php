@@ -8,12 +8,14 @@ class Report
     private $db;
     private $transaction;
     private $employee;
+    private $location;
 
     public function __construct()
     {
         $this->db = new Database;
         $this->transaction = new Transaction;
         $this->employee = new Employee;
+        $this->location = $_SESSION['location'] ?? 'Addis Ababa';
     }
 
     public function getDashboardData()
@@ -56,7 +58,7 @@ class Report
     {
         $query = "SELECT c.name, COALESCE(SUM(t.amount), 0) as total 
                   FROM categories c 
-                  LEFT JOIN transactions t ON c.id = t.category_id AND t.type = 'expense'";
+                  LEFT JOIN transactions t ON c.id = t.category_id AND t.type = 'expense' AND t.location = :location";
 
         $where_clauses = ["c.type = 'expense'"];
         if ($start_date && $end_date) {
@@ -67,6 +69,7 @@ class Report
         $query .= " GROUP BY c.id, c.name ORDER BY total DESC";
 
         $this->db->query($query);
+        $this->db->bind(':location', $this->location);
 
         if ($start_date && $end_date) {
             $this->db->bind(':start_date', $start_date);
@@ -80,7 +83,7 @@ class Report
     {
         $query = "SELECT c.name, COALESCE(SUM(t.amount), 0) as total 
                   FROM categories c 
-                  LEFT JOIN transactions t ON c.id = t.category_id AND t.type = 'income'";
+                  LEFT JOIN transactions t ON c.id = t.category_id AND t.type = 'income' AND t.location = :location";
 
         $where_clauses = ["c.type = 'income'"];
         if ($start_date && $end_date) {
@@ -91,6 +94,7 @@ class Report
         $query .= " GROUP BY c.id, c.name ORDER BY total DESC";
 
         $this->db->query($query);
+        $this->db->bind(':location', $this->location);
 
         if ($start_date && $end_date) {
             $this->db->bind(':start_date', $start_date);
@@ -121,9 +125,10 @@ class Report
                             SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
                             SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense
                           FROM transactions
-                          WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                          WHERE location = :location AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
                           GROUP BY DATE(transaction_date)
                           ORDER BY date ASC");
+        $this->db->bind(':location', $this->location);
         $results = $this->db->resultset();
 
         $trend = ['labels' => [], 'income' => [], 'expenses' => []];
@@ -151,10 +156,11 @@ class Report
                             SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
                             SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses
                           FROM transactions 
-                          WHERE YEAR(transaction_date) = :year 
+                          WHERE location = :location AND YEAR(transaction_date) = :year 
                           GROUP BY MONTH(transaction_date) 
                           ORDER BY month");
 
+        $this->db->bind(':location', $this->location);
         $this->db->bind(':year', $year);
         return $this->db->resultset();
     }

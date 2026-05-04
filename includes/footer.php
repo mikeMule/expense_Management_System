@@ -1,64 +1,22 @@
-</div>
-</div>
-<footer class="footer-react text-center py-4 mt-5">
-    <div class="container">
-        <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2">
+        </div> <!-- End of main-content -->
+    </div> <!-- End of wrapper flex -->
 
-            <span class="footer-heart"> Created with <span class="footer-love">❤</span> By <span class="footer-team">Mule wave Team</span></span>
+    <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white text-center py-6 mt-10 border-t-4 border-brand shadow-inner">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-center items-center gap-2 text-lg tracking-wide">
+                <span class="font-normal text-gray-300">
+                    Created with <span class="text-red-400 text-xl align-middle inline-block animate-pulse">❤</span> By <span class="font-bold text-blue-400">Mule wave Team</span>
+                </span>
+            </div>
         </div>
-    </div>
-</footer>
-
-<style>
-    .footer-react {
-        background: linear-gradient(90deg, #232526 0%, #414345 100%);
-        color: #fff;
-        font-size: 1.08rem;
-        letter-spacing: 0.01em;
-        border-top: 2px solid #1976d2;
-        box-shadow: 0 -2px 16px rgba(25, 118, 210, 0.08);
-    }
-
-    .footer-dev {
-        font-weight: 500;
-        color: #90caf9;
-    }
-
-    .footer-team {
-        font-weight: 700;
-        color: #42a5f5;
-    }
-
-    .footer-heart {
-        color: #fff;
-        font-weight: 400;
-    }
-
-    .footer-love {
-        color: #e57373;
-        font-size: 1.2em;
-        vertical-align: middle;
-        animation: pulse 1.2s infinite alternate;
-    }
-
-    @keyframes pulse {
-        0% {
-            transform: scale(1);
-        }
-
-        100% {
-            transform: scale(1.18);
-        }
-    }
-</style>
+    </footer>
 
 <!-- JQuery -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<!-- Bootstrap JS (Unified version 5.3.7 for all pages) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<!-- Note: Removed DataTables Bootstrap 5 JS and Core Bootstrap JS as we are migrating to Tailwind -->
 <!-- Custom JS -->
 <script src="<?php echo AssetManager::url('assets/js/main.js'); ?>"></script>
 

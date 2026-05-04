@@ -3,7 +3,6 @@ require_once '../config/database.php';
 require_once '../classes/Auth.php';
 require_once '../classes/Transaction.php';
 
-session_start();
 header('Content-Type: application/json');
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
@@ -71,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $response['success'] = true;
                 $response['message'] = 'Transaction added successfully!';
                 $response['transaction_id'] = $newTransactionId;
+                $_SESSION['success_message'] = $response['message'];
             } else {
                 $response['message'] = 'Failed to add transaction. Please try again.';
             }

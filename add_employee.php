@@ -3,11 +3,11 @@ require_once 'config/database.php';
 require_once 'classes/Auth.php';
 require_once 'classes/Employee.php';
 
-$page_title = 'Add Employee';
-include 'includes/header.php';
-
 $auth = new Auth();
 $auth->requireLogin();
+
+$page_title = 'Add Employee';
+include 'includes/header.php';
 
 $employee = new Employee();
 $error = '';
@@ -95,165 +95,141 @@ if ($_POST) {
     }
 }
 
-include 'includes/navbar.php';
 ?>
 
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">
-                        <i class="fas fa-user-plus me-2"></i>Add New Employee
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <?php if ($error): ?>
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle me-2"></i><?php echo $error; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($success): ?>
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="employee_id" class="form-label">
-                                    <i class="fas fa-id-badge me-1"></i>Employee ID *
-                                </label>
-                                <input type="text" class="form-control" id="employee_id" name="employee_id"
-                                    value="<?php echo htmlspecialchars($employee_id ?? ''); ?>"
-                                    placeholder="e.g., EMP001" maxlength="20" required>
-                                <div class="invalid-feedback">
-                                    Please enter an employee ID.
-                                </div>
-                                <small class="form-text text-muted">Unique identifier for the employee</small>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="position" class="form-label">
-                                    <i class="fas fa-briefcase me-1"></i>Position *
-                                </label>
-                                <input type="text" class="form-control" id="position" name="position"
-                                    value="<?php echo htmlspecialchars($position ?? ''); ?>"
-                                    placeholder="e.g., Software Developer" maxlength="100" required>
-                                <div class="invalid-feedback">
-                                    Please enter the employee's position.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="first_name" class="form-label">
-                                    <i class="fas fa-user me-1"></i>First Name *
-                                </label>
-                                <input type="text" class="form-control" id="first_name" name="first_name"
-                                    value="<?php echo htmlspecialchars($first_name ?? ''); ?>"
-                                    placeholder="John" maxlength="50" required>
-                                <div class="invalid-feedback">
-                                    Please enter the first name.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="last_name" class="form-label">
-                                    <i class="fas fa-user me-1"></i>Last Name *
-                                </label>
-                                <input type="text" class="form-control" id="last_name" name="last_name"
-                                    value="<?php echo htmlspecialchars($last_name ?? ''); ?>"
-                                    placeholder="Doe" maxlength="50" required>
-                                <div class="invalid-feedback">
-                                    Please enter the last name.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">
-                                    <i class="fas fa-envelope me-1"></i>Email
-                                </label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                    value="<?php echo htmlspecialchars($email ?? ''); ?>"
-                                    placeholder="john.doe@company.com" maxlength="100">
-                                <div class="invalid-feedback">
-                                    Please enter a valid email address.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label">
-                                    <i class="fas fa-phone me-1"></i>Phone
-                                </label>
-                                <input type="tel" class="form-control" id="phone" name="phone"
-                                    value="<?php echo htmlspecialchars($phone ?? ''); ?>"
-                                    placeholder="+1 (555) 123-4567" maxlength="20">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="monthly_salary" class="form-label">
-                                    <i class="fas fa-dollar-sign me-1"></i>Monthly Salary *
-                                </label>
-                                <input type="number" class="form-control" id="monthly_salary" name="monthly_salary"
-                                    value="<?php echo htmlspecialchars($monthly_salary ?? ''); ?>"
-                                    step="0.01" min="0.01" placeholder="5000.00" data-currency required>
-                                <div class="invalid-feedback">
-                                    Please enter a valid monthly salary.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="hire_date" class="form-label">
-                                    <i class="fas fa-calendar me-1"></i>Hire Date
-                                </label>
-                                <input type="date" class="form-control" id="hire_date" name="hire_date"
-                                    value="<?php echo htmlspecialchars($hire_date ?? date('Y-m-d')); ?>"
-                                    max="<?php echo date('Y-m-d'); ?>">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <label for="attachment" class="form-label">
-                                    <i class="fas fa-paperclip me-1"></i>Attachment (PDF/DOC/DOCX)
-                                </label>
-                                <input type="file" class="form-control" id="attachment" name="attachment"
-                                    accept=".pdf,.doc,.docx"
-                                    onchange="validateFile(this)">
-                                <div class="invalid-feedback">
-                                    Please select a valid PDF or DOC file.
-                                </div>
-                                <small class="form-text text-muted">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Maximum file size: 5MB. Supported formats: PDF, DOC, DOCX
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> New employees will be set as active by default. You can change their status later if needed.
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="employees.php" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-1"></i>Back to Employees
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i>Add Employee
-                            </button>
-                        </div>
-                    </form>
-                </div>
+<div class="page-animate w-full max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative">
+            <div class="flex items-center gap-4 mb-2">
+                <h1 class="text-4xl font-black text-gray-900 tracking-tight m-0 flex items-center gap-3">
+                    Enrollment
+                </h1>
+                <span class="bg-brand text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-brand/20 uppercase tracking-tighter">
+                    Append Personnel
+                </span>
             </div>
+            <p class="text-gray-500 font-medium text-sm m-0">
+                Initialize a new operator profile in the organizational directory.
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="employees.php" class="h-11 px-5 bg-white text-gray-900 border-3 border-gray-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-black transition-all flex items-center gap-2 shadow-sm">
+                <i class="fas fa-arrow-left text-[10px]"></i> Discard
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Module -->
+    <div class="bg-white rounded-[40px] border-3 border-gray-100 shadow-2xl shadow-black/5 overflow-hidden">
+        <div class="p-8 md:p-12">
+            <?php if ($error): ?>
+                <div class="bg-rose-50 text-rose-700 p-5 rounded-2xl border-2 border-rose-100 mb-8 flex items-center">
+                    <i class="fas fa-exclamation-circle text-rose-500 text-xl mr-4"></i>
+                    <span class="font-black text-xs uppercase tracking-tight"><?php echo $error; ?></span>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-10" novalidate>
+                <!-- Core Identity -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label for="employee_id" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Unique Identifier *</label>
+                        <input type="text" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-50 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="employee_id" name="employee_id"
+                            value="<?php echo htmlspecialchars($employee_id ?? ''); ?>"
+                            placeholder="e.g., EMP-1001" maxlength="20" required>
+                    </div>
+
+                    <div>
+                        <label for="position" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Organizational Role *</label>
+                        <input type="text" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-50 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="position" name="position"
+                            value="<?php echo htmlspecialchars($position ?? ''); ?>"
+                            placeholder="e.g., Financial Analyst" maxlength="100" required>
+                    </div>
+                </div>
+
+                <!-- Personal Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label for="first_name" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Given Name *</label>
+                        <input type="text" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="first_name" name="first_name"
+                            value="<?php echo htmlspecialchars($first_name ?? ''); ?>"
+                            placeholder="Enter first name" maxlength="50" required>
+                    </div>
+
+                    <div>
+                        <label for="last_name" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Family Name *</label>
+                        <input type="text" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="last_name" name="last_name"
+                            value="<?php echo htmlspecialchars($last_name ?? ''); ?>"
+                            placeholder="Enter last name" maxlength="50" required>
+                    </div>
+                </div>
+
+                <!-- Contact Vector -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label for="email" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Electronic Mail</label>
+                        <input type="email" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="email" name="email"
+                            value="<?php echo htmlspecialchars($email ?? ''); ?>"
+                            placeholder="name@organization.com" maxlength="100">
+                    </div>
+
+                    <div>
+                        <label for="phone" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Communication Line</label>
+                        <input type="tel" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="phone" name="phone"
+                            value="<?php echo htmlspecialchars($phone ?? ''); ?>"
+                            placeholder="+251 ..." maxlength="20">
+                    </div>
+                </div>
+
+                <!-- Remuneration & Timeline -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label for="monthly_salary" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Base Remuneration (<?php echo CURRENCY_SYMBOL; ?>) *</label>
+                        <input type="number" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-black text-sm amount" id="monthly_salary" name="monthly_salary"
+                            value="<?php echo htmlspecialchars($monthly_salary ?? ''); ?>"
+                            step="0.01" min="0.01" placeholder="0.00" required>
+                    </div>
+
+                    <div>
+                        <label for="hire_date" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Commencement Date</label>
+                        <input type="date" class="w-full h-14 px-4 bg-gray-50 border-3 border-gray-200 text-gray-900 rounded-2xl focus:bg-white focus:border-brand outline-none transition-all font-bold text-sm" id="hire_date" name="hire_date"
+                            value="<?php echo htmlspecialchars($hire_date ?? date('Y-m-d')); ?>"
+                            max="<?php echo date('Y-m-d'); ?>">
+                    </div>
+                </div>
+
+                <!-- Credential Repository -->
+                <div class="p-8 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 group hover:border-brand transition-all">
+                    <label for="attachment" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 block text-center">Personnel Credentials</label>
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-white border-2 border-gray-100 flex items-center justify-center text-gray-300 group-hover:text-brand transition-colors">
+                            <i class="fas fa-file-contract text-2xl"></i>
+                        </div>
+                        <input type="file" class="hidden" id="attachment" name="attachment" accept=".pdf,.doc,.docx" onchange="validateFile(this)">
+                        <button type="button" onclick="document.getElementById('attachment').click()" class="h-10 px-6 bg-white border-2 border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-black transition-all">
+                            Browse Local Repository
+                        </button>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">PDF, DOC, DOCX • MAX 5MB</p>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50/50 p-6 rounded-2xl border-2 border-indigo-100 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
+                        <i class="fas fa-info-circle text-sm"></i>
+                    </div>
+                    <p class="text-[10px] font-bold text-indigo-700 uppercase tracking-tight m-0">
+                        Personnel will be initialized with <strong>Active Status</strong>. Enrollment capacity is limited to 10 active operators.
+                    </p>
+                </div>
+
+                <!-- Execution Layer -->
+                <div class="flex justify-end pt-10 border-t border-gray-100">
+                    <button type="submit" class="w-full sm:w-64 h-16 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-3">
+                        <i class="fas fa-user-check"></i> Finalize Enrollment
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
