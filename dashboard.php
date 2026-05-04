@@ -23,19 +23,24 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
             <div class="relative">
                 <div class="flex items-center gap-4 mb-2">
                     <h1 class="text-4xl font-black text-gray-900 tracking-tight m-0 flex items-center gap-3">
-                        Dashboard
+                        Dashboardd
                     </h1>
-                    <span class="bg-brand text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-brand/20 uppercase tracking-tighter">Live</span>
+                    <span
+                        class="bg-brand text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-brand/20 uppercase tracking-tighter">Live</span>
                 </div>
                 <p class="text-gray-500 font-medium text-sm m-0">
-                    Welcome back, <span class="text-brand font-bold underline decoration-brand/30 underline-offset-4"><?php echo htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']); ?></span>. Here's your financial status.
+                    Welcome back, <span
+                        class="text-brand font-bold underline decoration-brand/30 underline-offset-4"><?php echo htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']); ?></span>.
+                    Here's your financial status.
                 </p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="reports.php" class="h-11 px-5 bg-white text-gray-700 border-3 border-gray-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-brand hover:text-brand transition-all flex items-center gap-2 shadow-sm">
+                <a href="reports.php"
+                    class="h-11 px-5 bg-white text-gray-700 border-3 border-gray-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-brand hover:text-brand transition-all flex items-center gap-2 shadow-sm">
                     <i class="fas fa-chart-bar text-[10px]"></i> Reports
                 </a>
-                <a href="add_transaction.php" class="h-11 px-6 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2 shadow-xl shadow-brand/20">
+                <a href="add_transaction.php"
+                    class="h-11 px-6 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2 shadow-xl shadow-brand/20">
                     <i class="fas fa-plus text-[10px]"></i> New Entry
                 </a>
             </div>
@@ -45,10 +50,12 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <!-- KPI Cards -->
             <a href="transactions.php?type=income" class="group block relative">
-                <div class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-emerald-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-emerald-500/10 h-full">
+                <div
+                    class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-emerald-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-emerald-500/10 h-full">
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Monthly Income</div>
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                             <i class="fas fa-arrow-trend-up"></i>
                         </div>
                     </div>
@@ -62,15 +69,19 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
             </a>
 
             <a href="transactions.php?type=expense" class="group block relative">
-                <div class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-rose-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-rose-500/10 h-full">
+                <div
+                    class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-rose-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-rose-500/10 h-full">
                     <div class="flex items-center justify-between mb-4">
-                        <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Monthly Expenses</div>
-                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-lg group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                        <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Monthly Expenses
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-lg group-hover:bg-rose-500 group-hover:text-white transition-colors">
                             <i class="fas fa-arrow-trend-down"></i>
                         </div>
                     </div>
                     <div class="text-2xl font-black text-gray-900 amount mb-2">
-                        <?php echo CURRENCY_SYMBOL; ?> <?php echo number_format($dashboardData['monthly_expenses'], 2); ?>
+                        <?php echo CURRENCY_SYMBOL; ?>
+                        <?php echo number_format($dashboardData['monthly_expenses'], 2); ?>
                     </div>
                     <div class="flex items-center gap-2 text-[10px] font-bold text-rose-500">
                         <i class="fas fa-minus"></i> 5% from last month
@@ -79,15 +90,19 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
             </a>
 
             <a href="reports.php" class="group block relative">
-                <div class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-brand group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-brand/10 h-full">
+                <div
+                    class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-brand group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-brand/10 h-full">
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Net Balance</div>
-                        <div class="w-10 h-10 rounded-xl bg-brand-light text-brand flex items-center justify-center text-lg group-hover:bg-brand group-hover:text-white transition-colors">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-brand-light text-brand flex items-center justify-center text-lg group-hover:bg-brand group-hover:text-white transition-colors">
                             <i class="fas fa-balance-scale"></i>
                         </div>
                     </div>
-                    <div class="text-2xl font-black amount mb-2 <?php echo $dashboardData['monthly_balance'] >= 0 ? 'text-emerald-600' : 'text-rose-600'; ?>">
-                        <?php echo CURRENCY_SYMBOL; ?> <?php echo number_format($dashboardData['monthly_balance'], 2); ?>
+                    <div
+                        class="text-2xl font-black amount mb-2 <?php echo $dashboardData['monthly_balance'] >= 0 ? 'text-emerald-600' : 'text-rose-600'; ?>">
+                        <?php echo CURRENCY_SYMBOL; ?>
+                        <?php echo number_format($dashboardData['monthly_balance'], 2); ?>
                     </div>
                     <div class="flex items-center gap-2 text-[10px] font-bold text-gray-400">
                         Current Month Status
@@ -96,10 +111,13 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
             </a>
 
             <a href="employees.php" class="group block relative">
-                <div class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-indigo-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-indigo-500/10 h-full">
+                <div
+                    class="bg-white rounded-2xl p-6 border-3 border-gray-100 shadow-sm transition-all duration-300 group-hover:border-indigo-500 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-indigo-500/10 h-full">
                     <div class="flex items-center justify-between mb-4">
-                        <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Active Personnel</div>
-                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                        <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Active Personnel
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg group-hover:bg-indigo-500 group-hover:text-white transition-colors">
                             <i class="fas fa-users"></i>
                         </div>
                     </div>
@@ -116,15 +134,19 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
         <!-- Charts Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
             <div class="lg:col-span-2">
-                <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 h-full relative overflow-hidden group">
+                <div
+                    class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 h-full relative overflow-hidden group">
                     <div class="flex justify-between items-center mb-8 relative z-10">
                         <div>
-                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Financial Performance</h3>
+                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Financial
+                                Performance</h3>
                             <h2 class="text-lg font-black text-gray-900">Income vs Expense Trend</h2>
                         </div>
                         <div class="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
-                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-brand"></span> Income</div>
-                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Expenses</div>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-brand"></span>
+                                Income</div>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                Expenses</div>
                         </div>
                     </div>
                     <div class="relative h-[320px] z-10">
@@ -135,56 +157,67 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 h-full flex flex-col group">
                     <div class="mb-8">
-                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Resource Allocation</h3>
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Resource Allocation
+                        </h3>
                         <h2 class="text-lg font-black text-gray-900">Expense Breakdown</h2>
                     </div>
                     <div class="relative flex-grow min-h-[250px]">
                         <canvas id="expenseBreakdownChart"></canvas>
                     </div>
-                    <div id="chart-legend" class="mt-8 text-[10px] font-bold uppercase tracking-widest text-gray-500 flex flex-wrap justify-center gap-4"></div>
+                    <div id="chart-legend"
+                        class="mt-8 text-[10px] font-bold uppercase tracking-widest text-gray-500 flex flex-wrap justify-center gap-4">
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Recent Transactions Preview (Added for Pro feel) -->
         <?php if (!empty($dashboardData['recent_transactions'])): ?>
-        <div class="mb-10">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-lg font-black text-gray-900 uppercase tracking-tight">Recent Activity</h2>
-                <a href="transactions.php" class="text-xs font-bold text-brand hover:underline">View All Records <i class="fas fa-arrow-right ml-1 text-[8px]"></i></a>
-            </div>
-            <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50/50 border-b border-gray-100">
-                                <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Type</th>
-                                <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Description</th>
-                                <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            <?php foreach ($dashboardData['recent_transactions'] as $tx): ?>
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-8 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter <?php echo $tx['type'] == 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'; ?>">
-                                        <?php echo $tx['type']; ?>
-                                    </span>
-                                </td>
-                                <td class="px-8 py-4">
-                                    <div class="text-sm font-bold text-gray-800"><?php echo htmlspecialchars($tx['description']); ?></div>
-                                    <div class="text-[10px] text-gray-400 font-medium"><?php echo date('M d, Y', strtotime($tx['transaction_date'])); ?></div>
-                                </td>
-                                <td class="px-8 py-4 text-right font-black text-gray-900 amount">
-                                    <?php echo $tx['type'] == 'income' ? '+' : '-'; ?><?php echo CURRENCY_SYMBOL . number_format($tx['amount'], 2); ?>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+            <div class="mb-10">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-black text-gray-900 uppercase tracking-tight">Recent Activity</h2>
+                    <a href="transactions.php" class="text-xs font-bold text-brand hover:underline">View All Records <i
+                            class="fas fa-arrow-right ml-1 text-[8px]"></i></a>
+                </div>
+                <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50/50 border-b border-gray-100">
+                                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        Type</th>
+                                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        Description</th>
+                                    <th
+                                        class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">
+                                        Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                <?php foreach ($dashboardData['recent_transactions'] as $tx): ?>
+                                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                                        <td class="px-8 py-4">
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter <?php echo $tx['type'] == 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'; ?>">
+                                                <?php echo $tx['type']; ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-8 py-4">
+                                            <div class="text-sm font-bold text-gray-800">
+                                                <?php echo htmlspecialchars($tx['description']); ?></div>
+                                            <div class="text-[10px] text-gray-400 font-medium">
+                                                <?php echo date('M d, Y', strtotime($tx['transaction_date'])); ?></div>
+                                        </td>
+                                        <td class="px-8 py-4 text-right font-black text-gray-900 amount">
+                                            <?php echo $tx['type'] == 'income' ? '+' : '-'; ?>        <?php echo CURRENCY_SYMBOL . number_format($tx['amount'], 2); ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
         <?php endif; ?>
 
     </div>
@@ -192,7 +225,7 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Expense Breakdown Chart
         const expenseCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
         const expenseData = <?php echo json_encode($expense_chart_data, JSON_NUMERIC_CHECK); ?>;
@@ -219,7 +252,7 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 let label = context.label || '';
                                 if (label) {
                                     label += ': ';
@@ -294,7 +327,7 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 let label = context.dataset.label || '';
                                 if (label) {
                                     label += ': ';
@@ -318,7 +351,7 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
                     },
                     y: {
                         ticks: {
-                            callback: function(value, index, values) {
+                            callback: function (value, index, values) {
                                 return '<?php echo CURRENCY_SYMBOL; ?> ' + new Intl.NumberFormat().format(value);
                             }
                         }
