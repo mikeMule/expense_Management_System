@@ -23,7 +23,7 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
             <div class="relative">
                 <div class="flex items-center gap-4 mb-2">
                     <h1 class="text-4xl font-black text-gray-900 tracking-tight m-0 flex items-center gap-3">
-                        Dashboardd
+                        Dashboard
                     </h1>
                     <span
                         class="bg-brand text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-brand/20 uppercase tracking-tighter">Live</span>
@@ -204,12 +204,15 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
                                         </td>
                                         <td class="px-8 py-4">
                                             <div class="text-sm font-bold text-gray-800">
-                                                <?php echo htmlspecialchars($tx['description']); ?></div>
+                                                <?php echo htmlspecialchars($tx['description']); ?>
+                                            </div>
                                             <div class="text-[10px] text-gray-400 font-medium">
-                                                <?php echo date('M d, Y', strtotime($tx['transaction_date'])); ?></div>
+                                                <?php echo date('M d, Y', strtotime($tx['transaction_date'])); ?>
+                                            </div>
                                         </td>
                                         <td class="px-8 py-4 text-right font-black text-gray-900 amount">
-                                            <?php echo $tx['type'] == 'income' ? '+' : '-'; ?>        <?php echo CURRENCY_SYMBOL . number_format($tx['amount'], 2); ?>
+                                            <?php echo $tx['type'] == 'income' ? '+' : '-'; ?>
+                                            <?php echo CURRENCY_SYMBOL . number_format($tx['amount'], 2); ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
