@@ -465,9 +465,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="brand-content">
         <div class="logo-ring">
-            <img src="assets/Gebeta_logo.png" alt="Gebeta Logo"
-                 onerror="this.style.display='none'; document.getElementById('lf').style.display='block';">
-            <i id="lf" class="fas fa-wallet" style="display:none; color:#c9a84c; font-size:3rem;"></i>
+            <img src="https://mulewave.com/myFile/uploads/1778069925_Gebeta_logo.png" alt="Gebeta Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 10px;">
         </div>
 
         <div class="brand-badge">

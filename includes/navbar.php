@@ -5,8 +5,8 @@
         <!-- Brand/Logo -->
         <div class="text-center py-8 border-b border-white/10">
             <a href="dashboard.php" class="inline-block hover:scale-105 transition-transform">
-                <div class="w-16 h-16 mx-auto bg-white/10 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
-                    <i class="fas fa-wallet text-3xl text-primary-100"></i>
+                <div class="mb-4">
+                    <img src="https://mulewave.com/myFile/uploads/1778069925_Gebeta_logo.png" alt="Gebeta Logo" class="h-16 mx-auto drop-shadow-lg">
                 </div>
                 <div class="font-bold text-xl tracking-wide"><?php echo APP_NAME; ?></div>
             </a>
