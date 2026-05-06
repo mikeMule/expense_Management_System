@@ -26,6 +26,10 @@ class Report
         $monthStart = date('Y-m-01');
         $monthEnd = date('Y-m-t');
 
+        // Previous month data
+        $prevMonthStart = date('Y-m-01', strtotime('-1 month'));
+        $prevMonthEnd = date('Y-m-t', strtotime('-1 month'));
+
         // Today's data
         $today = date('Y-m-d');
 
@@ -33,6 +37,14 @@ class Report
         $data['monthly_income'] = $this->transaction->getTotalIncome($monthStart, $monthEnd);
         $data['monthly_expenses'] = $this->transaction->getTotalExpenses($monthStart, $monthEnd);
         $data['monthly_balance'] = $data['monthly_income'] - $data['monthly_expenses'];
+
+        // Previous monthly data for comparison
+        $prev_income = $this->transaction->getTotalIncome($prevMonthStart, $prevMonthEnd);
+        $prev_expenses = $this->transaction->getTotalExpenses($prevMonthStart, $prevMonthEnd);
+
+        // Calculate percentage changes
+        $data['income_growth'] = $prev_income > 0 ? (($data['monthly_income'] - $prev_income) / $prev_income) * 100 : 0;
+        $data['expense_growth'] = $prev_expenses > 0 ? (($data['monthly_expenses'] - $prev_expenses) / $prev_expenses) * 100 : 0;
 
         // Overall historical data for other reports
         $data['total_income'] = $this->transaction->getTotalIncome();
@@ -197,5 +209,27 @@ class Report
             'expenses_by_category' => $this->getExpensesByCategory($start_date, $end_date),
             'income_by_category' => $this->getIncomeByCategory($start_date, $end_date)
         ];
+    }
+
+    public function getEmployeeSalaryReport($employee_id, $year = null)
+    {
+        $query = 'SELECT sp.*, e.first_name, e.last_name, e.employee_id as emp_id_str, e.position 
+                  FROM salary_payments sp 
+                  JOIN employees e ON sp.employee_id = e.id 
+                  WHERE sp.employee_id = :employee_id';
+        
+        if ($year) {
+            $query .= ' AND sp.year = :year';
+        }
+        
+        $query .= ' ORDER BY sp.year DESC, sp.month DESC';
+        
+        $this->db->query($query);
+        $this->db->bind(':employee_id', $employee_id);
+        if ($year) {
+            $this->db->bind(':year', $year);
+        }
+        
+        return $this->db->resultset();
     }
 }

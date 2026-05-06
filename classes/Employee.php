@@ -183,11 +183,10 @@ class Employee
 
         foreach ($employees as $employee) {
             // Check if payment already exists
-            $this->db->query('SELECT COUNT(*) as count FROM salary_payments WHERE employee_id = :employee_id AND month = :month AND year = :year AND location = :location');
+            $this->db->query('SELECT COUNT(*) as count FROM salary_payments WHERE employee_id = :employee_id AND month = :month AND year = :year');
             $this->db->bind(':employee_id', $employee['id']);
             $this->db->bind(':month', $month);
             $this->db->bind(':year', $year);
-            $this->db->bind(':location', $this->location);
             if ($this->db->single()['count'] > 0) {
                 continue; // Skip if already exists
             }

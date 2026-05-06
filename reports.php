@@ -32,10 +32,29 @@ $yearlyReport = $report->getYearlyReport($year);
                 </span>
             </div>
             <p class="text-gray-500 font-medium text-sm m-0">
-                Comprehensive financial insights and performance metrics for <?php echo date('F Y'); ?>.
+                Financial performance for <?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?>.
             </p>
         </div>
         <div class="flex items-center gap-3">
+            <form method="GET" class="flex items-center gap-2">
+                <select name="month" class="h-11 px-4 bg-white border-3 border-gray-100 rounded-xl font-bold text-xs">
+                    <?php for($m=1; $m<=12; $m++): ?>
+                        <option value="<?php echo $m; ?>" <?php echo $m == $month ? 'selected' : ''; ?>>
+                            <?php echo date('F', mktime(0, 0, 0, $m, 1)); ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+                <select name="year" class="h-11 px-4 bg-white border-3 border-gray-100 rounded-xl font-bold text-xs">
+                    <?php for($y=date('Y'); $y>=2020; $y--): ?>
+                        <option value="<?php echo $y; ?>" <?php echo $y == $year ? 'selected' : ''; ?>>
+                            <?php echo $y; ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+                <button type="submit" class="h-11 px-4 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all">
+                    Filter
+                </button>
+            </form>
             <button onclick="window.print()" class="h-11 px-5 bg-white text-gray-900 border-3 border-gray-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:border-black transition-all flex items-center gap-2 shadow-sm">
                 <i class="fas fa-print text-[10px]"></i> Print Report
             </button>
@@ -46,37 +65,37 @@ $yearlyReport = $report->getYearlyReport($year);
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-6 group hover:border-emerald-500 transition-all">
             <div class="flex items-center justify-between mb-4">
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Revenue</div>
+                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Period Revenue</div>
                 <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                     <i class="fas fa-arrow-down"></i>
                 </div>
             </div>
             <div class="text-xl font-black text-gray-900 amount">
-                <?php echo CURRENCY_SYMBOL . number_format($dashboardData['total_income'], 2); ?>
+                <?php echo CURRENCY_SYMBOL . number_format($monthlyReport['total_income'], 2); ?>
             </div>
         </div>
 
         <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-6 group hover:border-rose-500 transition-all">
             <div class="flex items-center justify-between mb-4">
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Outflow</div>
+                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Period Outflow</div>
                 <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
                     <i class="fas fa-arrow-up"></i>
                 </div>
             </div>
             <div class="text-xl font-black text-gray-900 amount">
-                <?php echo CURRENCY_SYMBOL . number_format($dashboardData['total_expenses'], 2); ?>
+                <?php echo CURRENCY_SYMBOL . number_format($monthlyReport['total_expenses'], 2); ?>
             </div>
         </div>
 
         <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-6 group hover:border-blue-500 transition-all">
             <div class="flex items-center justify-between mb-4">
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Net Liquidity</div>
+                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Period Net</div>
                 <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
                     <i class="fas fa-wallet"></i>
                 </div>
             </div>
             <div class="text-xl font-black text-gray-900 amount">
-                <?php echo CURRENCY_SYMBOL . number_format($dashboardData['balance'], 2); ?>
+                <?php echo CURRENCY_SYMBOL . number_format($monthlyReport['total_income'] - $monthlyReport['total_expenses'], 2); ?>
             </div>
         </div>
 
@@ -95,26 +114,44 @@ $yearlyReport = $report->getYearlyReport($year);
 
     <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-        <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 group hover:border-brand transition-all">
+        <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 group hover:border-brand transition-all relative">
             <div class="flex items-center gap-3 mb-8">
                 <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
                     <i class="fas fa-chart-pie text-xs"></i>
                 </div>
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Expense Distribution</h3>
+                <div>
+                    <h3 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 text-left">Resource Allocation</h3>
+                    <h2 class="text-sm font-black text-gray-900 text-left">Expense Breakdown</h2>
+                </div>
             </div>
             <div class="relative h-[300px]">
+                <?php if (empty($monthlyReport['expenses_by_category']) || array_sum(array_column($monthlyReport['expenses_by_category'], 'total')) == 0): ?>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-300">
+                        <i class="fas fa-chart-pie text-5xl mb-4 opacity-20"></i>
+                        <p class="text-xs font-bold uppercase tracking-widest">No Expense Data</p>
+                    </div>
+                <?php endif; ?>
                 <canvas id="expensesByCategoryChart"></canvas>
             </div>
         </div>
 
-        <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 group hover:border-brand transition-all">
+        <div class="bg-white rounded-3xl border-3 border-gray-100 shadow-sm p-8 group hover:border-brand transition-all relative">
             <div class="flex items-center gap-3 mb-8">
                 <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <i class="fas fa-chart-pie text-xs"></i>
                 </div>
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Income Sources</h3>
+                <div>
+                    <h3 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 text-left">Revenue Stream</h3>
+                    <h2 class="text-sm font-black text-gray-900 text-left">Income Sources</h2>
+                </div>
             </div>
             <div class="relative h-[300px]">
+                <?php if (empty($monthlyReport['income_by_category']) || array_sum(array_column($monthlyReport['income_by_category'], 'total')) == 0): ?>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-300">
+                        <i class="fas fa-chart-pie text-5xl mb-4 opacity-20"></i>
+                        <p class="text-xs font-bold uppercase tracking-widest">No Income Data</p>
+                    </div>
+                <?php endif; ?>
                 <canvas id="incomeByCategoryChart"></canvas>
             </div>
         </div>
@@ -190,7 +227,7 @@ $yearlyReport = $report->getYearlyReport($year);
     const expensesLabels = expensesByCategory.map(e => e.name);
     const expensesData = expensesByCategory.map(e => parseFloat(e.total));
     new Chart(document.getElementById('expensesByCategoryChart'), {
-        type: 'doughnut',
+        type: 'pie',
         data: {
             labels: expensesLabels,
             datasets: [{
@@ -215,7 +252,7 @@ $yearlyReport = $report->getYearlyReport($year);
     const incomeLabels = incomeByCategory.map(e => e.name);
     const incomeData = incomeByCategory.map(e => parseFloat(e.total));
     new Chart(document.getElementById('incomeByCategoryChart'), {
-        type: 'doughnut',
+        type: 'pie',
         data: {
             labels: incomeLabels,
             datasets: [{

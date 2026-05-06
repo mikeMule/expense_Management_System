@@ -6,13 +6,10 @@ require_once 'classes/Employee.php';
 $auth = new Auth();
 $auth->requireLogin();
 
-$page_title = 'Employees';
-include 'includes/header.php';
-
-$employee = new Employee();
-
 // Handle modal form submission
 if ($_POST && isset($_POST['add_employee'])) {
+    require_once 'classes/Employee.php';
+    $employee = new Employee();
     $employee_id = trim($_POST['employee_id'] ?? '');
     $first_name = trim($_POST['first_name'] ?? '');
     $last_name = trim($_POST['last_name'] ?? '');
@@ -89,6 +86,12 @@ if ($_POST && isset($_POST['add_employee'])) {
     header('Location: employees.php');
     exit();
 }
+
+$page_title = 'Employees';
+include 'includes/header.php';
+
+require_once 'classes/Employee.php';
+$employee = new Employee();
 
 // Get all employees
 $employees = $employee->getAllEmployees();
@@ -184,21 +187,13 @@ unset($_SESSION['success'], $_SESSION['error']);
                     <tr class="bg-gray-50/50 border-b border-gray-100">
                         <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Employee</th>
                         <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Position</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Location</th>
                         <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Monthly Salary</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
                         <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    <?php if (empty($employees)): ?>
-                    <tr>
-                        <td colspan="4" class="px-8 py-20 text-center">
-                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200">
-                                <i class="fas fa-users text-gray-300"></i>
-                            </div>
-                            <h3 class="text-gray-400 font-bold text-sm">No employees found in the directory.</h3>
-                        </td>
-                    </tr>
-                    <?php else: ?>
                     <?php foreach ($employees as $emp): ?>
                     <tr class="hover:bg-gray-50/50 transition-all duration-200 group border-l-4 border-l-transparent hover:border-l-brand" data-status="<?php echo $emp['status']; ?>">
                         <td class="px-8 py-6">
@@ -221,6 +216,12 @@ unset($_SESSION['success'], $_SESSION['error']);
                                 <?php echo htmlspecialchars($emp['position']); ?>
                             </span>
                         </td>
+                        <td class="px-8 py-6 text-center">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter bg-gray-50 text-gray-600 border border-gray-100">
+                                <i class="fas fa-map-marker-alt text-brand"></i>
+                                <?php echo htmlspecialchars($emp['location'] ?? 'Addis Ababa'); ?>
+                            </span>
+                        </td>
                         <td class="px-8 py-6 text-right">
                             <div class="text-sm font-black text-gray-900 amount">
                                 <?php echo CURRENCY_SYMBOL . number_format($emp['monthly_salary'], 2); ?>
@@ -229,11 +230,27 @@ unset($_SESSION['success'], $_SESSION['error']);
                                 Hired: <?php echo $emp['hire_date'] ? date('M d, Y', strtotime($emp['hire_date'])) : '-'; ?>
                             </div>
                         </td>
+                        <td class="px-8 py-6 text-center">
+                            <?php if (($emp['status'] ?? 'active') == 'active'): ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                                    Active
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter bg-rose-50 text-rose-700 border border-rose-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>
+                                    Inactive
+                                </span>
+                            <?php endif; ?>
+                        </td>
                         <td class="px-8 py-6">
                             <div class="flex items-center justify-center gap-2">
                                 <button type="button" class="h-9 w-9 rounded-xl bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-brand hover:text-white transition-all border border-gray-100 shadow-sm btn-view-details" data-employee-id="<?php echo $emp['id']; ?>">
                                     <i class="fas fa-eye text-[10px]"></i>
                                 </button>
+                                <a href="salary_report.php?employee_id=<?php echo $emp['id']; ?>" class="h-9 w-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all border border-indigo-100 shadow-sm">
+                                    <i class="fas fa-file-invoice-dollar text-[10px]"></i>
+                                </a>
                                 <a href="edit_employee.php?id=<?php echo $emp['id']; ?>" class="h-9 w-9 rounded-xl bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all border border-gray-100 shadow-sm">
                                     <i class="fas fa-edit text-[10px]"></i>
                                 </a>
@@ -244,7 +261,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                         </td>
                     </tr>
                     <?php endforeach; ?>
-                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

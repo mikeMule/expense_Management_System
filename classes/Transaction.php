@@ -303,4 +303,24 @@ class Transaction
     {
         return $this->getFilteredTransactions([], $limit);
     }
+
+    public function getOrCreateCategory($name, $type)
+    {
+        $this->db->query('SELECT id FROM categories WHERE name = :name AND type = :type');
+        $this->db->bind(':name', $name);
+        $this->db->bind(':type', $type);
+        $result = $this->db->single();
+
+        if ($result) {
+            return $result['id'];
+        }
+
+        $this->db->query('INSERT INTO categories (name, type) VALUES (:name, :type)');
+        $this->db->bind(':name', $name);
+        $this->db->bind(':type', $type);
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
 }

@@ -1,6 +1,6 @@
 <?php if (isset($_SESSION['user_id'])): ?>
     <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-[-260px] lg:left-0 w-[260px] h-screen bg-brand-dark text-white flex flex-col z-[100] transition-all duration-300 shadow-xl overflow-y-auto scrollbar-thin">
+    <aside class="sidebar fixed top-0 left-[-16rem] lg:left-0 w-64 h-screen bg-brand-dark text-white flex flex-col z-[100] transition-all duration-300 shadow-xl overflow-y-auto scrollbar-thin">
         
         <!-- Brand/Logo -->
         <div class="text-center py-8 border-b border-white/10">
@@ -50,6 +50,12 @@
                     <a href="reports.php" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 <?php echo basename($_SERVER['PHP_SELF']) == 'reports.php' ? 'bg-primary-600 shadow-md text-white font-semibold' : 'text-white/70 hover:bg-white/10 hover:text-white'; ?>">
                         <i class="fas fa-chart-line w-6 text-center mr-3"></i>
                         <span>Reports</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="salary_report.php" class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 <?php echo basename($_SERVER['PHP_SELF']) == 'salary_report.php' ? 'bg-primary-600 shadow-md text-white font-semibold' : 'text-white/70 hover:bg-white/10 hover:text-white'; ?>">
+                        <i class="fas fa-file-invoice-dollar w-6 text-center mr-3"></i>
+                        <span>Salary Report</span>
                     </a>
                 </li>
                 <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>

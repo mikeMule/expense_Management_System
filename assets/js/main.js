@@ -17,17 +17,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (sidebarToggle && sidebar && sidebarOverlay) {
         const toggleSidebar = () => {
-            const isOpen = sidebar.classList.contains('left-0') && !sidebar.classList.contains('left-[-260px]');
+            const isOpen = sidebar.classList.contains('left-0') && !sidebar.classList.contains('left-[-16rem]');
             
             if (isOpen) {
                 // Close
-                sidebar.classList.replace('left-0', 'left-[-260px]');
+                sidebar.classList.replace('left-0', 'left-[-16rem]');
                 sidebarOverlay.classList.add('opacity-0');
                 setTimeout(() => sidebarOverlay.classList.add('hidden'), 300);
                 toggleIcon.classList.replace('fa-times', 'fa-bars');
             } else {
                 // Open
-                sidebar.classList.replace('left-[-260px]', 'left-0');
+                sidebar.classList.replace('left-[-16rem]', 'left-0');
                 sidebarOverlay.classList.remove('hidden');
                 setTimeout(() => sidebarOverlay.classList.remove('opacity-0'), 10);
                 toggleIcon.classList.replace('fa-bars', 'fa-times');
@@ -445,12 +445,15 @@ document.addEventListener('DOMContentLoaded', function () {
       responsive: true,
       pageLength: 10,
       language: {
-        search: "<i class='fas fa-search'></i>",
+        search: '',
         searchPlaceholder: 'Search employees...',
+        emptyTable: '<div class="py-10 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200"><i class="fas fa-users text-gray-300"></i></div><h3 class="text-gray-400 font-bold text-sm">No employees found in the directory.</h3></div>'
       },
       columnDefs: [
-        { targets: [0], className: 'fw-bold text-primary' },
-        { targets: '_all', className: 'align-middle' },
+        { targets: [0, 1, 2, 3, 4], className: 'align-middle' },
+        { targets: [3], className: 'text-right' },
+        { targets: [2, 4, 5], className: 'text-center' },
+        { targets: [5], orderable: false }
       ],
     })
 
@@ -463,10 +466,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Status filter
-    const statusFilter = document.getElementById('statusFilter')
     if (statusFilter) {
       statusFilter.addEventListener('change', function () {
-        employeeTable.column(6).search(this.value).draw()
+        employeeTable.column(4).search(this.value).draw()
       })
     }
   }
@@ -518,13 +520,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const salaryTable = $('#salaryTable').DataTable({
             responsive: true,
             pageLength: 10,
-            order: [[1, 'desc']], // Sort by Period/Date descending
+            order: [[1, 'desc']], 
             language: {
-                search: "<i class='fas fa-search'></i>",
+                search: '',
                 searchPlaceholder: 'Search salaries...',
+                emptyTable: '<div class="py-10 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200"><i class="fas fa-money-check-alt text-gray-300"></i></div><h3 class="text-gray-400 font-bold text-sm">No salary records found.</h3></div>'
             },
             columnDefs: [
                 { targets: '_all', className: 'align-middle' },
+                { targets: [3], className: 'text-right' },
+                { targets: [2, 4], className: 'text-center' },
+                { targets: [4], orderable: false }
             ],
         })
 

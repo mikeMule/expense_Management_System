@@ -62,8 +62,9 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
                     <div class="text-2xl font-black text-gray-900 amount mb-2">
                         <?php echo CURRENCY_SYMBOL; ?> <?php echo number_format($dashboardData['monthly_income'], 2); ?>
                     </div>
-                    <div class="flex items-center gap-2 text-[10px] font-bold text-emerald-500">
-                        <i class="fas fa-plus"></i> 15% from last month
+                    <div class="flex items-center gap-2 text-[10px] font-bold <?php echo $dashboardData['income_growth'] >= 0 ? 'text-emerald-500' : 'text-rose-500'; ?>">
+                        <i class="fas <?php echo $dashboardData['income_growth'] >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'; ?>"></i> 
+                        <?php echo number_format(abs($dashboardData['income_growth']), 1); ?>% from last month
                     </div>
                 </div>
             </a>
@@ -83,8 +84,9 @@ $income_expense_trend = $report->getIncomeExpenseTrendForChart();
                         <?php echo CURRENCY_SYMBOL; ?>
                         <?php echo number_format($dashboardData['monthly_expenses'], 2); ?>
                     </div>
-                    <div class="flex items-center gap-2 text-[10px] font-bold text-rose-500">
-                        <i class="fas fa-minus"></i> 5% from last month
+                    <div class="flex items-center gap-2 text-[10px] font-bold <?php echo $dashboardData['expense_growth'] <= 0 ? 'text-emerald-500' : 'text-rose-500'; ?>">
+                        <i class="fas <?php echo $dashboardData['expense_growth'] <= 0 ? 'fa-arrow-down' : 'fa-arrow-up'; ?>"></i> 
+                        <?php echo number_format(abs($dashboardData['expense_growth']), 1); ?>% from last month
                     </div>
                 </div>
             </a>

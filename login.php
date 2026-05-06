@@ -13,16 +13,10 @@ if ($auth->isLoggedIn()) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-
     if (empty($username) || empty($password)) {
         $error = 'Please enter both username and password.';
-    } else {
-        if ($auth->login($username, $password)) {
-            header('Location: dashboard.php');
-            exit();
-        } else {
-            $error = 'Invalid username or password. Please try again.';
-        }
+    } elseif (!$auth->login($username, $password)) {
+        $error = 'Invalid credentials. Please try again.';
     }
 }
 ?>
@@ -32,34 +26,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Access — <?php echo APP_NAME; ?></title>
-    <meta name="description" content="Secure login to the Mule Wave Executive Ledger platform.">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { brand: '#000000' }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
     <style>
-        * { font-family: 'Inter', sans-serif; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* ── Full-screen two-column layout ── */
-        body {
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
+        :root {
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --dark: #0a0a0f;
+            --dark2: #13131e;
+            --silver: #c0c0c0;
         }
 
-        /* Left panel — brand */
-        .brand-panel {
-            background: linear-gradient(160deg, #0f0f0f 0%, #1a1a2e 60%, #16213e 100%);
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            background: var(--dark);
+            overflow: hidden;
+        }
+
+        /* ── Equal 50/50 split ── */
+        .left-panel,
+        .right-panel {
+            flex: 1 1 50%;
+            max-width: 50%;
+        }
+
+        /* ═══════════════════════════════
+           LEFT PANEL
+        ═══════════════════════════════ */
+        .left-panel {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -67,283 +65,551 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 3rem 2.5rem;
             position: relative;
             overflow: hidden;
-            flex: 1;
+            background: linear-gradient(145deg, #0d0d1a 0%, #0a0a14 60%, #070710 100%);
         }
 
-        .brand-panel::before {
-            content: '';
+        /* Animated orb backgrounds */
+        .orb {
             position: absolute;
-            top: -120px; right: -120px;
-            width: 400px; height: 400px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+            filter: blur(80px);
+            opacity: 0.18;
+            animation: orbFloat 8s ease-in-out infinite;
         }
-        .brand-panel::after {
-            content: '';
-            position: absolute;
-            bottom: -80px; left: -80px;
-            width: 300px; height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+        .orb-1 { width:500px; height:500px; background:#4f46e5; top:-150px; right:-100px; animation-delay:0s; }
+        .orb-2 { width:350px; height:350px; background:#7c3aed; bottom:-100px; left:-80px; animation-delay:3s; }
+        .orb-3 { width:250px; height:250px; background:#c9a84c; top:50%; left:40%; animation-delay:5s; }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50%       { transform: translateY(-30px) scale(1.05); }
         }
 
-        /* Right panel — form */
-        .form-panel {
-            background: #f8f8f8;
+        /* Fine grid overlay */
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 420px;
+        }
+
+        .logo-ring {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 32px;
+            border-radius: 32px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
+            margin-bottom: 2.5rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .logo-ring img {
+            max-width: 260px;
+            max-height: 160px;
+            width: auto;
+            height: auto;
+            display: block;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(201,168,76,0.12);
+            border: 1px solid rgba(201,168,76,0.3);
+            color: var(--gold-light);
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border-radius: 100px;
+            margin-bottom: 1.25rem;
+        }
+
+        .brand-title {
+            font-size: clamp(2rem, 3vw, 2.75rem);
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+        }
+
+        .brand-title span {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-desc {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            font-weight: 500;
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+        }
+
+        /* Feature chips */
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .feature-chip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 12px 16px;
+            transition: border-color 0.3s;
+        }
+        .feature-chip:hover { border-color: rgba(201,168,76,0.25); }
+
+        .feature-icon {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: rgba(201,168,76,0.1);
+            border: 1px solid rgba(201,168,76,0.2);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold-light);
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .feature-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+        }
+
+        .brand-copyright {
+            margin-top: 3rem;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.18);
+        }
+
+        /* ═══════════════════════════════
+           RIGHT PANEL
+        ═══════════════════════════════ */
+        .right-panel {
+            min-height: 100vh;
+            background: #f4f4f6;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 3rem 2rem;
-            width: 100%;
-            max-width: 480px;
-            min-height: 100vh;
-        }
-
-        /* 4px silver border on inputs */
-        .login-input {
-            border: 4px solid #C0C0C0 !important;
-            background: #fff !important;
-            width: 100%;
-            height: 56px;
-            border-radius: 16px;
-            padding-left: 3rem;
-            padding-right: 1rem;
-            font-weight: 700;
-            font-size: 0.875rem;
-            color: #111;
-            outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            box-sizing: border-box;
-        }
-        .login-input:focus {
-            border-color: #000 !important;
-            box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+            padding: 2.5rem 3rem;
+            position: relative;
+            overflow-y: auto;
         }
 
         .form-card {
-            background: #fff;
-            border-radius: 32px;
-            padding: 2.5rem;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.08);
-            border: 1px solid #e5e7eb;
+            animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
         }
 
-        /* Fade-in */
-        .fade-in { animation: fadeInUp 0.5s ease-out forwards; }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(14px); }
-            to   { opacity: 1; transform: translateY(0); }
+        @keyframes slideUp {
+            from { opacity:0; transform: translateY(24px); }
+            to   { opacity:1; transform: translateY(0); }
         }
 
-        /* Support pulse */
-        .support-btn { animation: subtlePulse 3s ease-in-out infinite; }
-        @keyframes subtlePulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
-            50%       { box-shadow: 0 0 0 6px rgba(16,185,129,0.12); }
+        .form-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2rem;
         }
 
-        /* Mobile: stack vertically */
-        @media (max-width: 767px) {
-            body { flex-direction: column; }
-            .brand-panel { min-height: 220px; flex: none; padding: 2rem 1.5rem; }
-            .form-panel { max-width: 100%; padding: 2rem 1.25rem; }
+        .shield-icon {
+            width: 44px; height: 44px;
+            background: #000;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+        }
+
+        .form-eyebrow-text p:first-child {
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin-bottom: 2px;
+        }
+        .form-eyebrow-text p:last-child {
+            font-size: 16px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: -0.02em;
+        }
+
+        /* Error box */
+        .error-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: #fff0f0;
+            border: 4px solid #fca5a5;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 1.5rem;
+        }
+        .error-box i { color: #ef4444; font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+        .error-box span { font-size: 12px; font-weight: 700; color: #b91c1c; line-height: 1.5; }
+
+        /* Form fields */
+        .field { margin-bottom: 1.25rem; }
+
+        .field label {
+            display: block;
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .field-wrap { position: relative; }
+
+        .field-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%; transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .field-input {
+            width: 100%;
+            height: 56px;
+            border: 4px solid var(--silver);
+            border-radius: 16px;
+            background: #fff;
+            padding: 0 48px 0 46px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #111;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field-input:focus {
+            border-color: #000;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.07);
+        }
+        .field-input::placeholder { color: #d1d5db; font-weight: 500; }
+
+        .toggle-btn {
+            position: absolute;
+            right: 14px;
+            top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: #9ca3af;
+            font-size: 14px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-btn:hover { color: #374151; }
+
+        /* Submit button */
+        .submit-btn {
+            width: 100%;
+            height: 58px;
+            border: none;
+            border-radius: 18px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            cursor: not-allowed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+            margin-top: 1.75rem;
+            background: #e5e7eb;
+            color: #9ca3af;
+        }
+        .submit-btn.active {
+            background: linear-gradient(135deg, #111 0%, #333 100%);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+        }
+        .submit-btn.active:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 50px rgba(0,0,0,0.35);
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 1.75rem 0;
+        }
+        .divider-line { flex:1; height:1px; background:#e5e7eb; }
+        .divider-text { font-size: 9px; font-weight: 800; color: #d1d5db; letter-spacing: 0.15em; text-transform: uppercase; }
+
+        /* Support button */
+        .support-pill {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 3px solid #e5e7eb;
+            border-radius: 100px;
+            padding: 8px 16px 8px 12px;
+            text-decoration: none;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #374151;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .support-pill:hover {
+            border-color: #000;
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .support-pill .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.25);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 2px rgba(34,197,94,0.25); }
+            50%       { box-shadow: 0 0 0 5px rgba(34,197,94,0.12); }
+        }
+
+        .form-footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            line-height: 2;
+        }
+
+        /* ─── Mobile ─── */
+        @media (max-width: 800px) {
+            body { flex-direction: column; overflow: auto; }
+            .left-panel,
+            .right-panel { flex: none; max-width: 100%; width: 100%; }
+            .left-panel {
+                min-height: 260px;
+                padding: 2rem 1.5rem;
+            }
+            .brand-title { font-size: 1.6rem; }
+            .features { display: none; }
+            .logo-ring img { max-width: 160px; max-height: 90px; }
+            .right-panel { min-height: auto; padding: 2rem 1.5rem; }
+            .support-pill { top: 12px; right: 12px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ── Support Call Button ── -->
-    <a href="tel:+251916182957"
-       class="support-btn fixed top-4 right-4 z-50 flex items-center gap-2 bg-white border-4 border-gray-200 hover:border-black text-gray-700 hover:text-gray-900 rounded-2xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all shadow-lg">
-        <i class="fas fa-phone text-emerald-500"></i>
-        <span class="hidden sm:inline">Support</span>
-        <span class="sm:hidden">Call</span>
-    </a>
+<!-- ── Support Call ── -->
+<a href="tel:+251916182957" class="support-pill">
+    <span class="dot"></span>
+    <i class="fas fa-phone" style="color:#22c55e; font-size:11px;"></i>
+    Support
+</a>
 
-    <!-- ══ LEFT — Brand Panel ══ -->
-    <div class="brand-panel" style="display: none;" id="brandPanel">
-        <div class="relative z-10 text-center">
-            <!-- Logo -->
-            <div class="mb-8 flex justify-center">
-                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-4 inline-block shadow-2xl">
-                    <img src="assets/Gebeta_logo.png"
-                         alt="<?php echo APP_NAME; ?> Logo"
-                         style="max-width:160px; max-height:100px; width:auto; height:auto; display:block;"
-                         onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';">
-                    <div id="logo-fallback" style="display:none; width:80px; height:80px;" class="items-center justify-center">
-                        <i class="fas fa-wallet text-white text-5xl"></i>
-                    </div>
-                </div>
-            </div>
+<!-- ══ LEFT PANEL ══ -->
+<div class="left-panel">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
 
-            <!-- Tagline -->
-            <h2 class="text-white text-3xl font-black tracking-tight mb-3 leading-tight">
-                Executive<br>Ledger
-            </h2>
-            <p class="text-white/50 text-xs font-bold uppercase tracking-[0.2em] mb-10">
-                Mule Wave Technology
-            </p>
-
-            <!-- Feature pills -->
-            <div class="space-y-3 text-left">
-                <?php foreach ([
-                    ['fa-shield-halved', 'Fully Encrypted & Secure'],
-                    ['fa-chart-line',   'Real-Time Financial Insights'],
-                    ['fa-users',        'Multi-Branch Management'],
-                ] as [$icon, $text]): ?>
-                <div class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                        <i class="fas <?php echo $icon; ?> text-white/80 text-xs"></i>
-                    </div>
-                    <span class="text-white/70 text-xs font-semibold"><?php echo $text; ?></span>
-                </div>
-                <?php endforeach; ?>
-            </div>
-
-            <!-- Footer credit -->
-            <p class="text-white/25 text-[10px] font-bold uppercase tracking-widest mt-12">
-                &copy; <?php echo date('Y'); ?> Mule Wave &bull; v2.0
-            </p>
+    <div class="brand-content">
+        <div class="logo-ring">
+            <img src="assets/Gebeta_logo.png" alt="Gebeta Logo"
+                 onerror="this.style.display='none'; document.getElementById('lf').style.display='block';">
+            <i id="lf" class="fas fa-wallet" style="display:none; color:#c9a84c; font-size:3rem;"></i>
         </div>
+
+        <div class="brand-badge">
+            <i class="fas fa-circle" style="font-size:6px; color:#22c55e;"></i>
+            Live Platform
+        </div>
+
+        <h1 class="brand-title">
+            Executive<br><span>Financial Ledger</span>
+        </h1>
+
+        <p class="brand-desc">
+            A centralized financial intelligence platform for<br>
+            multi-branch operations, payroll, and analytics.
+        </p>
+
+        <div class="features">
+            <?php foreach ([
+                ['fa-shield-halved',  'AES-256 Encrypted Sessions'],
+                ['fa-chart-line',     'Real-Time Financial Analytics'],
+                ['fa-building',       'Bahirdar & Addis Ababa Branches'],
+                ['fa-users-gear',     'Role-Based Access Control'],
+            ] as [$icon, $text]): ?>
+            <div class="feature-chip">
+                <div class="feature-icon">
+                    <i class="fas <?php echo $icon; ?>"></i>
+                </div>
+                <span class="feature-text"><?php echo $text; ?></span>
+            </div>
+            <?php endforeach; ?>
+        </div>
+
+        <p class="brand-copyright">
+            &copy; <?php echo date('Y'); ?> Mule Wave Technology Solutions &bull; v2.0
+        </p>
     </div>
+</div>
 
-    <!-- ══ RIGHT — Form Panel ══ -->
-    <div class="form-panel">
-        <div class="form-card fade-in">
+<!-- ══ RIGHT PANEL ══ -->
+<div class="right-panel">
+    <div class="form-card">
 
-            <!-- Mobile logo (only shows on mobile) -->
-            <div class="flex justify-center mb-6 md:hidden">
-                <img src="assets/Gebeta_logo.png" alt="Logo"
-                     style="max-width:120px; max-height:70px; width:auto; height:auto;">
+        <!-- Mobile logo -->
+        <div style="text-align:center; margin-bottom:1.5rem; display:none;" class="mobile-logo">
+            <img src="assets/Gebeta_logo.png" alt="Logo"
+                 style="max-width:120px; max-height:60px; width:auto; height:auto; margin:0 auto;">
+        </div>
+
+        <div class="form-eyebrow">
+            <div class="shield-icon">
+                <i class="fas fa-fingerprint"></i>
+            </div>
+            <div class="form-eyebrow-text">
+                <p>Identity Verification</p>
+                <p>Sign in to continue</p>
+            </div>
+        </div>
+
+        <?php if ($error): ?>
+        <div class="error-box">
+            <i class="fas fa-circle-exclamation"></i>
+            <span><?php echo htmlspecialchars($error); ?></span>
+        </div>
+        <?php endif; ?>
+
+        <form method="POST" id="loginForm" novalidate>
+
+            <!-- Username -->
+            <div class="field">
+                <label for="username">Access Identity</label>
+                <div class="field-wrap">
+                    <i class="fas fa-at field-icon"></i>
+                    <input type="text" id="username" name="username" class="field-input"
+                           placeholder="Enter your username" required autocomplete="username"
+                           value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                </div>
             </div>
 
-            <!-- Header -->
-            <div class="flex items-center gap-3 mb-8">
-                <div class="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-shield-alt text-sm"></i>
-                </div>
-                <div>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest m-0">Platform Access</p>
-                    <p class="text-sm font-black text-gray-900 m-0">Identity Verification</p>
-                </div>
-            </div>
-
-            <!-- Error -->
-            <?php if ($error): ?>
-            <div class="flex items-start gap-3 bg-rose-50 p-4 rounded-2xl border-4 border-rose-200 mb-6">
-                <i class="fas fa-circle-exclamation text-rose-500 text-base mt-0.5 flex-shrink-0"></i>
-                <span class="font-bold text-xs text-rose-700 leading-relaxed"><?php echo htmlspecialchars($error); ?></span>
-            </div>
-            <?php endif; ?>
-
-            <!-- Form -->
-            <form method="POST" id="loginForm" novalidate class="space-y-5">
-
-                <!-- Username -->
-                <div>
-                    <label for="username" class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">
-                        Access Identity
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                            <i class="fas fa-at text-sm"></i>
-                        </div>
-                        <input type="text" name="username" id="username" required autocomplete="username"
-                            class="login-input"
-                            placeholder="Enter your username"
-                            value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
-                    </div>
-                </div>
-
-                <!-- Password -->
-                <div>
-                    <label for="password" class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">
-                        Security Credential
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                            <i class="fas fa-lock text-sm"></i>
-                        </div>
-                        <input type="password" name="password" id="password" required autocomplete="current-password"
-                            class="login-input" style="padding-right:3rem;"
-                            placeholder="••••••••">
-                        <button type="button" id="togglePassword"
-                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-700 transition-colors">
-                            <i class="fas fa-eye text-sm" id="eyeIcon"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Submit -->
-                <div class="pt-2">
-                    <button type="submit" id="loginBtn" disabled
-                        style="width:100%; height:56px; border-radius:16px; border:none; font-size:0.7rem; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; cursor:not-allowed; transition:all 0.3s; display:flex; align-items:center; justify-content:center; gap:10px; background:#e5e7eb; color:#9ca3af;">
-                        <i class="fas fa-arrow-right-to-bracket"></i>
-                        Authenticate
+            <!-- Password -->
+            <div class="field">
+                <label for="password">Security Credential</label>
+                <div class="field-wrap">
+                    <i class="fas fa-lock field-icon"></i>
+                    <input type="password" id="password" name="password" class="field-input"
+                           placeholder="••••••••" required autocomplete="current-password">
+                    <button type="button" id="togglePwd" class="toggle-btn" tabindex="-1">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
                     </button>
                 </div>
-            </form>
+            </div>
 
-            <!-- Footer -->
-            <p class="mt-6 text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest">
-                &copy; <?php echo date('Y'); ?> Mule Wave Technology
-            </p>
+            <button type="submit" id="loginBtn" class="submit-btn" disabled>
+                <i class="fas fa-arrow-right-to-bracket"></i>
+                Authenticate
+            </button>
+        </form>
+
+        <div class="divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">Secure &bull; Encrypted &bull; Private</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <div class="form-footer">
+            &copy; <?php echo date('Y'); ?> Mule Wave Technology Solutions<br>
+            <span style="color:#d1d5db;">Executive Ledger &bull; All Rights Reserved</span>
         </div>
     </div>
+</div>
 
-    <script>
-        // Show brand panel only on desktop
-        function checkLayout() {
-            const panel = document.getElementById('brandPanel');
-            if (window.innerWidth >= 768) {
-                panel.style.display = 'flex';
-            } else {
-                panel.style.display = 'none';
-            }
-        }
-        checkLayout();
-        window.addEventListener('resize', checkLayout);
+<script>
+    const u = document.getElementById('username');
+    const p = document.getElementById('password');
+    const btn = document.getElementById('loginBtn');
+    const togglePwd = document.getElementById('togglePwd');
+    const eyeIcon = document.getElementById('eyeIcon');
 
-        // Form logic
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const loginBtn      = document.getElementById('loginBtn');
-        const togglePwd     = document.getElementById('togglePassword');
-        const eyeIcon       = document.getElementById('eyeIcon');
+    function check() {
+        const ok = u.value.trim() && p.value.trim();
+        btn.disabled = !ok;
+        btn.className = 'submit-btn' + (ok ? ' active' : '');
+    }
 
-        function toggleButton() {
-            const ready = usernameInput.value.trim() !== '' && passwordInput.value.trim() !== '';
-            loginBtn.disabled = !ready;
-            if (ready) {
-                loginBtn.style.background = '#000';
-                loginBtn.style.color = '#fff';
-                loginBtn.style.cursor = 'pointer';
-                loginBtn.style.boxShadow = '0 20px 40px rgba(0,0,0,0.2)';
-            } else {
-                loginBtn.style.background = '#e5e7eb';
-                loginBtn.style.color = '#9ca3af';
-                loginBtn.style.cursor = 'not-allowed';
-                loginBtn.style.boxShadow = 'none';
-            }
-        }
+    u.addEventListener('input', check);
+    p.addEventListener('input', check);
 
-        usernameInput.addEventListener('input', toggleButton);
-        passwordInput.addEventListener('input', toggleButton);
+    togglePwd.addEventListener('click', () => {
+        const show = p.type === 'password';
+        p.type = show ? 'text' : 'password';
+        eyeIcon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+    });
 
-        togglePwd.addEventListener('click', function() {
-            const isPass = passwordInput.type === 'password';
-            passwordInput.type = isPass ? 'text' : 'password';
-            eyeIcon.className = isPass ? 'fas fa-eye-slash text-sm' : 'fas fa-eye text-sm';
-        });
+    document.getElementById('loginForm').addEventListener('submit', function() {
+        btn.disabled = true;
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    });
 
-        document.getElementById('loginForm').addEventListener('submit', function() {
-            loginBtn.disabled = true;
-            loginBtn.style.opacity = '0.8';
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
-        });
-    </script>
+    // Show mobile logo on small screens
+    if (window.innerWidth <= 800) {
+        document.querySelectorAll('.mobile-logo').forEach(el => el.style.display = 'block');
+    }
+</script>
 </body>
 </html>

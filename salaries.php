@@ -7,11 +7,6 @@ $auth->requireLogin();
 
 require_once 'classes/Employee.php';
 
-$page_title = 'Salary Management';
-include 'includes/header.php';
-
-$employee = new Employee();
-
 // Always define modal error/success variables
 $salary_error = '';
 $salary_success = '';
@@ -25,6 +20,8 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['submitted_salary']);
 
 // Handle add salary modal POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_salary'])) {
+    require_once 'classes/Employee.php';
+    $employee = new Employee();
     $employee_id_str = trim($_POST['employee_id'] ?? '');
     $amount = floatval($_POST['amount'] ?? 0);
     $month = intval($_POST['month'] ?? 0);
@@ -73,6 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_salary'])) {
 
 // Handle generate monthly salaries
 if ($_POST && isset($_POST['generate_salaries'])) {
+    require_once 'classes/Employee.php';
+    $employee = new Employee();
     $month = intval($_POST['month']);
     $year = intval($_POST['year']);
 
@@ -90,6 +89,12 @@ if ($_POST && isset($_POST['generate_salaries'])) {
     }
 }
 
+$page_title = 'Salary Management';
+include 'includes/header.php';
+
+require_once 'classes/Employee.php';
+$employee = new Employee();
+
 // Get filter parameters (allow 'all' for month/year)
 $filter_month = isset($_GET['month']) && $_GET['month'] !== 'all' ? $_GET['month'] : null;
 $filter_year = isset($_GET['year']) && $_GET['year'] !== 'all' ? $_GET['year'] : null;
@@ -100,7 +105,31 @@ $pending_salaries = $employee->getPendingSalaries();
 $total_monthly_budget = $employee->getTotalMonthlySalaries();
 
 ?>
-<div class="page-animate w-full">
+<div class="page-animate w-full px-4">
+    <!-- Global Alerts -->
+    <?php if ($success): ?>
+        <div class="mb-8 bg-emerald-50 border-3 border-emerald-100 rounded-[2rem] p-8 flex items-center gap-6 shadow-xl shadow-emerald-600/5 animate-fade-in alert-auto-dismiss">
+            <div class="w-16 h-16 rounded-3xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-600/20 rotate-3">
+                <i class="fas fa-check-circle text-2xl"></i>
+            </div>
+            <div>
+                <h4 class="text-emerald-900 font-black text-sm uppercase tracking-widest mb-1">Execution Successful</h4>
+                <p class="text-emerald-700/80 text-sm font-bold tracking-tight"><?php echo htmlspecialchars($success); ?></p>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+        <div class="mb-8 bg-rose-50 border-3 border-rose-100 rounded-[2rem] p-8 flex items-center gap-6 shadow-xl shadow-rose-600/5 animate-fade-in alert-auto-dismiss">
+            <div class="w-16 h-16 rounded-3xl bg-rose-600 text-white flex items-center justify-center shadow-lg shadow-rose-600/20 -rotate-3">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <div>
+                <h4 class="text-rose-900 font-black text-sm uppercase tracking-widest mb-1">Process Error</h4>
+                <p class="text-rose-700/80 text-sm font-bold tracking-tight"><?php echo htmlspecialchars($error); ?></p>
+            </div>
+        </div>
+    <?php endif; ?>
     <!-- Header Section -->
     <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative">
@@ -275,14 +304,12 @@ $total_monthly_budget = $employee->getTotalMonthlySalaries();
                     <tr class="bg-gray-50/50 border-b border-gray-100">
                         <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Employee</th>
                         <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Period & Date</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Location</th>
                         <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Amount</th>
                         <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    <?php if (empty($salary_payments)): ?>
-                    <tr><td colspan="4" class="px-8 py-20 text-center text-gray-400 font-bold text-sm">No records found.</td></tr>
-                    <?php else: ?>
                     <?php foreach ($salary_payments as $s): ?>
                     <tr class="hover:bg-gray-50/50 transition-all border-l-4 border-l-transparent hover:border-l-indigo-600">
                         <td class="px-8 py-6">
@@ -294,6 +321,12 @@ $total_monthly_budget = $employee->getTotalMonthlySalaries();
                             <div class="text-[9px] font-bold <?php echo !empty($s['payment_date']) ? 'text-gray-400' : 'text-amber-600'; ?> mt-1 uppercase tracking-widest">
                                 <?php echo !empty($s['payment_date']) ? date('M d, Y', strtotime($s['payment_date'])) : 'Pending Payment'; ?>
                             </div>
+                        </td>
+                        <td class="px-8 py-6 text-center">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter bg-gray-50 text-gray-600 border border-gray-100">
+                                <i class="fas fa-map-marker-alt text-brand"></i>
+                                <?php echo htmlspecialchars($s['location'] ?? 'Addis Ababa'); ?>
+                            </span>
                         </td>
                         <td class="px-8 py-6 text-right font-black text-gray-900 amount">
                             <?php echo CURRENCY_SYMBOL . number_format($s['amount'], 2); ?>
@@ -319,7 +352,6 @@ $total_monthly_budget = $employee->getTotalMonthlySalaries();
                         </td>
                     </tr>
                     <?php endforeach; ?>
-                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
