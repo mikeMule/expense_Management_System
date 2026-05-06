@@ -22,6 +22,8 @@ class Database
 
         try {
             $this->dbh = new PDO($dsn, $this->user, $this->pass, $options);
+            // Set MySQL session timezone to match Ethiopia (+03:00)
+            $this->dbh->exec("SET time_zone = '+03:00'");
         } catch (PDOException $e) {
             $this->error = $e->getMessage();
             // Log the error to a file
