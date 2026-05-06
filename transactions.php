@@ -194,8 +194,8 @@ $categories = $transaction->getCategories();
                 </div>
             <?php else: ?>
                 <!-- Desktop View (Hidden on Mobile) -->
-                <div class="hidden md:block overflow-x-auto hide-dt-search">
-                    <table id="transactionTable" class="display stripe hover w-full text-left border-collapse whitespace-nowrap">
+                <div class="hidden md:block w-full hide-dt-search">
+                    <table id="transactionTable" class="display stripe hover w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-50/50 border-b border-gray-200 text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black">
                                 <th class="px-6 py-5 text-left">Chronology</th>

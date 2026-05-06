@@ -171,7 +171,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <div class="wrapper flex min-h-screen bg-gray-50 text-gray-900 font-sans">
         <?php include 'includes/navbar.php'; ?>
-        <div class="main-content flex-grow w-full lg:ml-64 transition-all duration-300 p-4 md:p-6 lg:p-8">
+        <div class="main-content flex-grow min-w-0 transition-all duration-300 p-4 md:p-6 lg:p-8 lg:ml-64">
             <!-- Toast Container -->
             <div class="fixed top-4 right-4 z-[1100] flex flex-col gap-2">
                 <div id="toastContainer"></div>

@@ -1,5 +1,7 @@
 <?php
 require_once 'Database.php';
+require_once 'Security.php';
+require_once 'Csrf.php';
 
 class Auth
 {
@@ -13,22 +15,42 @@ class Auth
         }
     }
 
-    public function login($username, $password)
+    public function login($username, $password, $csrf_token = null)
     {
+        // 1. CSRF Validation
+        if ($csrf_token && !Csrf::validateToken($csrf_token)) {
+            return ['success' => false, 'error' => 'Security token mismatch. Please refresh.'];
+        }
+
+        // 2. Rate Limiting check
+        $ip = $_SERVER['REMOTE_ADDR'];
+        if (!Security::checkRateLimit($ip, $this->db)) {
+            return ['success' => false, 'error' => 'Too many failed attempts. Please try again in 15 minutes.'];
+        }
+
         $this->db->query('SELECT * FROM users WHERE username = :username');
         $this->db->bind(':username', $username);
         $user = $this->db->single();
 
         if ($user && password_verify($password, $user['password'])) {
+            // Success: Clear failed attempts
+            Security::clearFailedAttempts($ip, $this->db);
+
+            // Harden session
+            session_regenerate_id(true);
+
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['location'] = $user['location'];
             $_SESSION['last_activity'] = time();
-            return true;
+            return ['success' => true];
         }
-        return false;
+
+        // Fail: Log attempt
+        Security::logFailedAttempt($ip, $this->db);
+        return ['success' => false, 'error' => 'Invalid credentials. Please try again.'];
     }
 
     public function logout()

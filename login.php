@@ -13,10 +13,18 @@ if ($auth->isLoggedIn()) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    
     if (empty($username) || empty($password)) {
         $error = 'Please enter both username and password.';
-    } elseif (!$auth->login($username, $password)) {
-        $error = 'Invalid credentials. Please try again.';
+    } else {
+        $result = $auth->login($username, $password, $csrf_token);
+        if ($result['success']) {
+            header('Location: dashboard.php');
+            exit();
+        } else {
+            $error = $result['error'];
+        }
     }
 }
 ?>
@@ -360,10 +368,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #9ca3af;
         }
         .submit-btn.active {
-            background: linear-gradient(135deg, #111 0%, #333 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: #fff;
             cursor: pointer;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+            box-shadow: 0 16px 40px rgba(16,185,129,0.25);
         }
         .submit-btn.active:hover {
             transform: translateY(-2px);
@@ -532,6 +540,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" id="loginForm" novalidate>
+            <?php require_once 'classes/Csrf.php'; Csrf::insertTokenField(); ?>
 
             <!-- Username -->
             <div class="field">

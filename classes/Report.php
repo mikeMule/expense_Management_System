@@ -22,46 +22,90 @@ class Report
     {
         $data = [];
 
-        // Current month data
+        // Reference Dates
         $monthStart = date('Y-m-01');
         $monthEnd = date('Y-m-t');
-
-        // Previous month data
-        $prevMonthStart = date('Y-m-01', strtotime('-1 month'));
-        $prevMonthEnd = date('Y-m-t', strtotime('-1 month'));
-
-        // Today's data
         $today = date('Y-m-d');
 
-        // Monthly data for the dashboard cards
-        $data['monthly_income'] = $this->transaction->getTotalIncome($monthStart, $monthEnd);
-        $data['monthly_expenses'] = $this->transaction->getTotalExpenses($monthStart, $monthEnd);
+        // Check if there is data for the current month
+        $currentMonthCount = $this->transaction->getTotalIncome($monthStart, $monthEnd) + $this->transaction->getTotalExpenses($monthStart, $monthEnd);
+
+        if ($currentMonthCount <= 0) {
+            $this->db->query("SELECT MAX(transaction_date) as latest FROM transactions WHERE location = :location");
+            $this->db->bind(':location', $this->location);
+            $latest = $this->db->single();
+            if ($latest && $latest['latest']) {
+                $refDate = $latest['latest'];
+                $monthStart = date('Y-m-01', strtotime($refDate));
+                $monthEnd = date('Y-m-t', strtotime($refDate));
+                $today = $refDate;
+            }
+        }
+
+        $prevMonthStart = date('Y-m-01', strtotime($monthStart . ' -1 month'));
+        $prevMonthEnd = date('Y-m-t', strtotime($monthStart . ' -1 month'));
+
+        // Optimized Query: Get all dashboard stats in one go
+        $this->db->query("SELECT 
+            SUM(CASE WHEN transaction_date BETWEEN :monthStart1 AND :monthEnd1 AND type = 'income' THEN amount ELSE 0 END) as monthly_income,
+            SUM(CASE WHEN transaction_date BETWEEN :monthStart2 AND :monthEnd2 AND type = 'expense' THEN amount ELSE 0 END) as monthly_expenses,
+            SUM(CASE WHEN transaction_date BETWEEN :prevMonthStart1 AND :prevMonthEnd1 AND type = 'income' THEN amount ELSE 0 END) as prev_income,
+            SUM(CASE WHEN transaction_date BETWEEN :prevMonthStart2 AND :prevMonthEnd2 AND type = 'expense' THEN amount ELSE 0 END) as prev_expenses,
+            SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
+            SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expenses,
+            SUM(CASE WHEN transaction_date = :today1 AND type = 'income' THEN amount ELSE 0 END) as daily_income,
+            SUM(CASE WHEN transaction_date = :today2 AND type = 'expense' THEN amount ELSE 0 END) as daily_expenses
+            FROM transactions 
+            WHERE location = :location");
+
+        $this->db->bind(':location', $this->location);
+        $this->db->bind(':monthStart1', $monthStart);
+        $this->db->bind(':monthEnd1', $monthEnd);
+        $this->db->bind(':monthStart2', $monthStart);
+        $this->db->bind(':monthEnd2', $monthEnd);
+        $this->db->bind(':prevMonthStart1', $prevMonthStart);
+        $this->db->bind(':prevMonthEnd1', $prevMonthEnd);
+        $this->db->bind(':prevMonthStart2', $prevMonthStart);
+        $this->db->bind(':prevMonthEnd2', $prevMonthEnd);
+        $this->db->bind(':today1', $today);
+        $this->db->bind(':today2', $today);
+
+        $stats = $this->db->single();
+
+        if (!$stats) {
+            $stats = [
+                'monthly_income' => 0, 'monthly_expenses' => 0, 
+                'prev_income' => 0, 'prev_expenses' => 0,
+                'total_income' => 0, 'total_expenses' => 0,
+                'daily_income' => 0, 'daily_expenses' => 0
+            ];
+        }
+
+        $data['monthly_income'] = (float)($stats['monthly_income'] ?? 0);
+        $data['monthly_expenses'] = (float)($stats['monthly_expenses'] ?? 0);
         $data['monthly_balance'] = $data['monthly_income'] - $data['monthly_expenses'];
 
-        // Previous monthly data for comparison
-        $prev_income = $this->transaction->getTotalIncome($prevMonthStart, $prevMonthEnd);
-        $prev_expenses = $this->transaction->getTotalExpenses($prevMonthStart, $prevMonthEnd);
+        $prev_income = (float)($stats['prev_income'] ?? 0);
+        $prev_expenses = (float)($stats['prev_expenses'] ?? 0);
 
-        // Calculate percentage changes
         $data['income_growth'] = $prev_income > 0 ? (($data['monthly_income'] - $prev_income) / $prev_income) * 100 : 0;
         $data['expense_growth'] = $prev_expenses > 0 ? (($data['monthly_expenses'] - $prev_expenses) / $prev_expenses) * 100 : 0;
 
-        // Overall historical data for other reports
-        $data['total_income'] = $this->transaction->getTotalIncome();
-        $data['total_expenses'] = $this->transaction->getTotalExpenses();
+        $data['total_income'] = (float)($stats['total_income'] ?? 0);
+        $data['total_expenses'] = (float)($stats['total_expenses'] ?? 0);
         $data['balance'] = $data['total_income'] - $data['total_expenses'];
 
-        // Daily data
-        $data['daily_income'] = $this->transaction->getTotalIncome($today, $today);
-        $data['daily_expenses'] = $this->transaction->getTotalExpenses($today, $today);
+        $data['daily_income'] = (float)($stats['daily_income'] ?? 0);
+        $data['daily_expenses'] = (float)($stats['daily_expenses'] ?? 0);
 
-        // Recent transactions
-        $data['recent_transactions'] = $this->transaction->getRecentTransactions(5);
+        // Recent transactions and employee data still need separate queries as they hit different tables/logic
+        $data['recent_transactions'] = $this->transaction->getRecentTransactions(5) ?: [];
 
         // Employee data
-        $data['active_employees'] = $this->employee->getEmployeeCount();
-        $data['pending_salaries'] = count($this->employee->getPendingSalaries());
-        $data['monthly_salary_budget'] = $this->employee->getTotalMonthlySalaries();
+        $data['active_employees'] = $this->employee->getEmployeeCount() ?: 0;
+        $pending = $this->employee->getPendingSalaries();
+        $data['pending_salaries'] = is_array($pending) ? count($pending) : 0;
+        $data['monthly_salary_budget'] = $this->employee->getTotalMonthlySalaries() ?: 0;
 
         return $data;
     }
@@ -132,22 +176,29 @@ class Report
 
     public function getIncomeExpenseTrendForChart()
     {
+        // Find latest date for trend reference
+        $this->db->query("SELECT MAX(transaction_date) as latest FROM transactions WHERE location = :location");
+        $this->db->bind(':location', $this->location);
+        $latestRes = $this->db->single();
+        $refDate = ($latestRes && $latestRes['latest']) ? $latestRes['latest'] : date('Y-m-d');
+
         $this->db->query("SELECT
                             DATE(transaction_date) as date,
                             SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
                             SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense
                           FROM transactions
-                          WHERE location = :location AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                          WHERE location = :location AND transaction_date >= DATE_SUB(:ref_date, INTERVAL 30 DAY)
                           GROUP BY DATE(transaction_date)
                           ORDER BY date ASC");
         $this->db->bind(':location', $this->location);
+        $this->db->bind(':ref_date', $refDate);
         $results = $this->db->resultset();
 
         $trend = ['labels' => [], 'income' => [], 'expenses' => []];
         $dates = array_column($results, 'date');
 
         for ($i = 29; $i >= 0; $i--) {
-            $date = date('Y-m-d', strtotime("-$i days"));
+            $date = date('Y-m-d', strtotime($refDate . " -$i days"));
             $trend['labels'][] = date('M d', strtotime($date));
             $key = array_search($date, $dates);
             if ($key !== false) {
@@ -211,7 +262,7 @@ class Report
         ];
     }
 
-    public function getEmployeeSalaryReport($employee_id, $year = null)
+    public function getEmployeeSalaryReport($employee_id, $year = null, $month = null)
     {
         $query = 'SELECT sp.*, e.first_name, e.last_name, e.employee_id as emp_id_str, e.position 
                   FROM salary_payments sp 
@@ -221,6 +272,10 @@ class Report
         if ($year) {
             $query .= ' AND sp.year = :year';
         }
+
+        if ($month) {
+            $query .= ' AND sp.month = :month';
+        }
         
         $query .= ' ORDER BY sp.year DESC, sp.month DESC';
         
@@ -228,6 +283,9 @@ class Report
         $this->db->bind(':employee_id', $employee_id);
         if ($year) {
             $this->db->bind(':year', $year);
+        }
+        if ($month) {
+            $this->db->bind(':month', $month);
         }
         
         return $this->db->resultset();

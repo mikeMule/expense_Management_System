@@ -23,18 +23,19 @@ try {
     $employee_details = $employee->getEmployeeById($employee_id);
 
     if (!$employee_details) {
-        throw new Exception('Employee not found.');
+        throw new Exception('Employee not found or access denied for this location.');
     }
 
     // Custom query to get salary payments for this specific employee
     $db = new Database();
-    $db->query('SELECT * FROM salary_payments WHERE employee_id = :employee_id ORDER BY year DESC, month DESC');
+    $db->query('SELECT * FROM salary_payments WHERE employee_id = :employee_id AND location = :location ORDER BY year DESC, month DESC');
     $db->bind(':employee_id', $employee_id);
+    $db->bind(':location', $_SESSION['location'] ?? 'Addis Ababa');
     $salary_history = $db->resultset();
 
     $response['success'] = true;
     $response['employee'] = $employee_details;
-    $response['salaries'] = $salary_history;
+    $response['salaries'] = $salary_history ?: [];
 
 } catch (Exception $e) {
     $response['message'] = $e->getMessage();

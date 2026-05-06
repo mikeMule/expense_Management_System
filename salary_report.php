@@ -12,13 +12,14 @@ $employee_obj = new Employee();
 
 $selected_employee_id = isset($_GET['employee_id']) ? intval($_GET['employee_id']) : null;
 $selected_year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
+$selected_month = isset($_GET['month']) && $_GET['month'] !== '' ? intval($_GET['month']) : null;
 
 $all_employees = $employee_obj->getAllEmployees();
 $salary_history = [];
 $employee_details = null;
 
 if ($selected_employee_id) {
-    $salary_history = $report->getEmployeeSalaryReport($selected_employee_id, $selected_year);
+    $salary_history = $report->getEmployeeSalaryReport($selected_employee_id, $selected_year, $selected_month);
     // Find employee details from all_employees array
     foreach ($all_employees as $emp) {
         if ($emp['id'] == $selected_employee_id) {
@@ -87,6 +88,21 @@ include 'includes/header.php';
                 </div>
             </div>
 
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left block">Specific Month</label>
+                <div class="relative">
+                    <i class="fas fa-calendar-day absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <select name="month" class="input-premium w-full pl-10">
+                        <option value="">All Months</option>
+                        <?php for ($m = 1; $m <= 12; $m++): ?>
+                            <option value="<?php echo $m; ?>" <?php echo $selected_month == $m ? 'selected' : ''; ?>>
+                                <?php echo date('F', mktime(0, 0, 0, $m, 1)); ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+            </div>
+
             <button type="submit" class="h-[52px] bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-2">
                 <i class="fas fa-search"></i> Generate Report
             </button>
@@ -101,7 +117,9 @@ include 'includes/header.php';
                     <i class="fas fa-money-bill-wave"></i>
                 </div>
                 <div class="relative z-10">
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-brand-light/50 mb-2">Total Paid (<?php echo $selected_year; ?>)</p>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-brand-light/50 mb-2">
+                        Total Paid (<?php echo ($selected_month ? date('F ', mktime(0,0,0,$selected_month,1)) : '') . $selected_year; ?>)
+                    </p>
                     <?php 
                         $total_paid = array_sum(array_column($salary_history, 'amount'));
                         $payment_count = count($salary_history);
@@ -133,7 +151,10 @@ include 'includes/header.php';
             <div class="lg:col-span-2 bg-white rounded-3xl md:rounded-[2rem] border-3 border-gray-100 shadow-sm overflow-hidden">
                 <div class="p-6 md:p-8 border-b border-gray-100 flex items-center justify-between">
                     <h3 class="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2 text-left">
-                        <i class="fas fa-list-ul text-brand"></i> Payment History Archive
+                        <i class="fas fa-list-ul text-brand"></i> 
+                        <?php echo htmlspecialchars($employee_details['first_name'] . ' ' . $employee_details['last_name']); ?> - 
+                        <?php echo ($selected_month ? date('F ', mktime(0,0,0,$selected_month,1)) : 'Annual '); ?> 
+                        <?php echo $selected_year; ?> Report
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
