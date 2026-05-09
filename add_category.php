@@ -1,7 +1,7 @@
 <?php
 require_once 'config/database.php';
 session_start();
-
+// test
 if (
     $_SERVER['REQUEST_METHOD'] === 'POST' &&
     !empty($_POST['category_name']) &&
