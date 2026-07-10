@@ -477,7 +477,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('transactionTable')) {
         const transactionTable = $('#transactionTable').DataTable({
             responsive: true,
-            pageLength: 10,
+            paging: false,
+            info: false,
             order: [[0, 'desc']], // Sort by Date descending by default
             language: {
                 search: "<i class='fas fa-search'></i>",

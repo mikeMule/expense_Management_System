@@ -19,7 +19,11 @@ $filter_end_date = $_GET['end_date'] ?? '';
 $search = $_GET['search'] ?? '';
 
 // Pagination settings
-$limit = 10;
+$allowed_limits = [10, 25, 50, 100];
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+if (!in_array($limit, $allowed_limits, true)) {
+    $limit = 50;
+}
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
@@ -399,43 +403,66 @@ $categories = $transaction->getCategories();
             <?php endif; ?>
 
             <!-- Pro Pagination Section -->
-            <?php if ($total_pages > 1): ?>
-                <div class="px-8 py-8 border-t border-gray-100 bg-gray-50/20 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div class="text-[11px] font-black text-gray-400 uppercase tracking-widest order-2 md:order-1">
-                        Page <span class="text-brand"><?php echo $page; ?></span> of <?php echo $total_pages; ?> • Total <span class="text-gray-600"><?php echo $total_records; ?></span> Records
+            <?php if ($total_records > 0):
+                $range_start = $offset + 1;
+                $range_end = min($offset + $limit, $total_records);
+            ?>
+                <div class="px-8 py-6 border-t border-gray-100 bg-gray-50/20 flex flex-col lg:flex-row justify-between items-center gap-5">
+                    <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 order-2 lg:order-1">
+                        <div class="text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                            Showing <span class="text-gray-600"><?php echo $range_start; ?>–<?php echo $range_end; ?></span> of <span class="text-brand"><?php echo $total_records; ?></span>
+                        </div>
+                        <span class="hidden sm:block w-px h-4 bg-gray-200"></span>
+                        <form method="get" class="flex items-center gap-2.5">
+                            <?php foreach ($_GET as $key => $value): if ($key === 'limit' || $key === 'page') continue; ?>
+                                <input type="hidden" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($value); ?>">
+                            <?php endforeach; ?>
+                            <label for="limit" class="text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Rows per page</label>
+                            <div class="relative">
+                                <select name="limit" id="limit" onchange="this.form.submit()" class="appearance-none rounded-xl bg-white border border-gray-200 text-[11px] font-black text-gray-600 uppercase tracking-widest pl-3 pr-8 py-2 shadow-sm hover:border-brand/50 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-all cursor-pointer">
+                                    <?php foreach ($allowed_limits as $opt): ?>
+                                        <option value="<?php echo $opt; ?>" <?php echo $limit == $opt ? 'selected' : ''; ?>><?php echo $opt; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <i class="fas fa-chevron-down text-[9px] text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            </div>
+                        </form>
                     </div>
-                    <div class="flex items-center gap-2 order-1 md:order-2">
+                    <?php if ($total_pages > 1): ?>
+                    <div class="flex items-center gap-1.5 order-1 lg:order-2">
                         <?php if ($page > 1): ?>
-                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => 1])); ?>" class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-sm" title="First Page">
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => 1])); ?>" class="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-sm" title="First page" aria-label="First page">
                                 <i class="fas fa-angle-double-left text-xs"></i>
                             </a>
-                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>" class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-[11px] font-black text-gray-500 uppercase tracking-widest hover:text-brand hover:border-brand transition-all shadow-sm">
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>" class="px-4 h-9 flex items-center rounded-xl bg-white border border-gray-200 text-[11px] font-black text-gray-500 uppercase tracking-widest hover:text-brand hover:border-brand transition-all shadow-sm" aria-label="Previous page">
                                 Previous
                             </a>
                         <?php endif; ?>
 
-                        <div class="flex items-center gap-1.5 px-3">
-                            <?php 
+                        <div class="flex items-center gap-1.5 px-1.5">
+                            <?php
                             $start_p = max(1, $page - 1);
                             $end_p = min($total_pages, $page + 1);
-                            for ($i = $start_p; $i <= $end_p; $i++): 
+                            for ($i = $start_p; $i <= $end_p; $i++):
                             ?>
-                                <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $i])); ?>" 
-                                   class="w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black transition-all shadow-sm <?php echo $i == $page ? 'bg-brand text-white shadow-brand/30' : 'bg-white border border-gray-200 text-gray-500 hover:text-brand hover:border-brand'; ?>">
+                                <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $i])); ?>"
+                                   class="w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-black transition-all shadow-sm <?php echo $i == $page ? 'bg-brand text-white shadow-brand/30' : 'bg-white border border-gray-200 text-gray-500 hover:text-brand hover:border-brand'; ?>"
+                                   <?php echo $i == $page ? 'aria-current="page"' : ''; ?>>
                                     <?php echo $i; ?>
                                 </a>
                             <?php endfor; ?>
                         </div>
 
                         <?php if ($page < $total_pages): ?>
-                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>" class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-[11px] font-black text-gray-500 uppercase tracking-widest hover:text-brand hover:border-brand transition-all shadow-sm">
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>" class="px-4 h-9 flex items-center rounded-xl bg-white border border-gray-200 text-[11px] font-black text-gray-500 uppercase tracking-widest hover:text-brand hover:border-brand transition-all shadow-sm" aria-label="Next page">
                                 Next
                             </a>
-                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $total_pages])); ?>" class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-sm" title="Last Page">
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $total_pages])); ?>" class="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-sm" title="Last page" aria-label="Last page">
                                 <i class="fas fa-angle-double-right text-xs"></i>
                             </a>
                         <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
         </div>
